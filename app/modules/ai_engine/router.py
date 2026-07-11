@@ -1,0 +1,12 @@
+"""
+AI Engine (Provider abstraction — NOT implemented yet) — API routes.
+
+Placeholder module. Endpoints will be added here as this module is
+implemented in a later development phase.
+"""
+
+from fastapi import APIRouter
+
+router = APIRouter()
+
+# TODO: add ai_engine endpoints here.

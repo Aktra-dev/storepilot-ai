@@ -1,5 +1,8 @@
 """
-AI Engine (Provider abstraction — NOT implemented yet) — SQLAlchemy ORM models.
+AI Engine — SQLAlchemy ORM models.
 
-Placeholder module. No tables are defined yet at this stage of the project.
+No models here yet. AI Operational Analysis output is persisted via
+AIAnalysisLog in app/modules/operational_analysis/models.py; this module
+will only get its own models if the AI provider abstraction itself
+needs persisted state (e.g. provider config) once it's implemented.
 """

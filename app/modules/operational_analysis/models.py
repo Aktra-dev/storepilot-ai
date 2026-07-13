@@ -1,92 +1,94 @@
 """
 Operational Analysis — SQLAlchemy ORM models.
 
-Owns the two tables produced by the analysis pipeline:
-- RiskSignal: output of Risk Detection (stockout/expiry) + Sales Anomaly
-  Detection.
-- AIAnalysisLog: audit trail of each AI Operational Analysis run (which
-  provider answered, and what it returned). Kept here rather than in
-  `ai_engine` because this is analysis *output data*, not AI logic itself
-  — `ai_engine` will own the provider abstraction/logic when it's built.
+OperationalAnalysis = one run of the AI Operational Analysis step.
+OperationalFinding  = one individual signal produced by that run (e.g.
+one stockout risk, one expiry risk, one sales anomaly), optionally tied
+to a specific product.
 """
 
 import enum
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import DateTime, Float, ForeignKey, String, Text, func
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
+if TYPE_CHECKING:
+    from app.modules.products.models import Product
+    from app.modules.tasks.models import Task
 
-class RiskType(str, enum.Enum):
+
+class AnalysisStatus(str, enum.Enum):
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class FindingType(str, enum.Enum):
     STOCKOUT = "stockout"
     EXPIRY = "expiry"
     SALES_ANOMALY = "sales_anomaly"
 
 
-class RiskStatus(str, enum.Enum):
-    OPEN = "open"
-    RESOLVED = "resolved"
-    IGNORED = "ignored"
+class Severity(str, enum.Enum):
+    CRITICAL = "critical"
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
 
 
-class AnalysisStatus(str, enum.Enum):
-    SUCCESS = "success"
-    FALLBACK_USED = "fallback_used"
-    FAILED = "failed"
-
-
-class RiskSignal(Base):
-    __tablename__ = "risk_signals"
+class OperationalAnalysis(Base):
+    __tablename__ = "operational_analyses"
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
-    store_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("stores.id"), nullable=False
-    )
-    product_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("products.id"), nullable=True
-    )
-
-    risk_type: Mapped[RiskType] = mapped_column(
-        SAEnum(RiskType, name="risk_type_enum"), nullable=False
-    )
-    severity_score: Mapped[float] = mapped_column(Float, nullable=False, default=0)
-    description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    raw_data: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-
-    detected_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
-    status: Mapped[RiskStatus] = mapped_column(
-        SAEnum(RiskStatus, name="risk_status_enum"),
-        nullable=False,
-        default=RiskStatus.OPEN,
-    )
-
-
-class AIAnalysisLog(Base):
-    __tablename__ = "ai_analysis_logs"
-
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    store_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("stores.id"), nullable=False
-    )
-
-    input_snapshot: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    ai_output: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
-    provider_used: Mapped[str | None] = mapped_column(String(50), nullable=True)
     status: Mapped[AnalysisStatus] = mapped_column(
-        SAEnum(AnalysisStatus, name="analysis_status_enum"), nullable=False
+        SAEnum(AnalysisStatus, name="analysis_status_enum"),
+        nullable=False,
+        default=AnalysisStatus.PENDING,
     )
-
+    summary: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    ai_provider: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+    findings: Mapped[list["OperationalFinding"]] = relationship(back_populates="analysis")
+
+
+class OperationalFinding(Base):
+    __tablename__ = "operational_findings"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    analysis_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("operational_analyses.id"), nullable=False
+    )
+    finding_type: Mapped[FindingType] = mapped_column(
+        SAEnum(FindingType, name="finding_type_enum"), nullable=False
+    )
+    product_id: Mapped[Optional[uuid.UUID]] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("products.id"), nullable=True
+    )
+    severity: Mapped[Severity] = mapped_column(
+        SAEnum(Severity, name="severity_enum"), nullable=False
+    )
+    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    confidence: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    analysis: Mapped["OperationalAnalysis"] = relationship(back_populates="findings")
+    product: Mapped[Optional["Product"]] = relationship(back_populates="findings")
+    tasks: Mapped[list["Task"]] = relationship(back_populates="finding")

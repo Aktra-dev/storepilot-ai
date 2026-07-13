@@ -1,30 +1,29 @@
 """
 One-off script to create all database tables from the SQLAlchemy models.
 
-For this project's scope, a plain create_all() script is used instead of
-Alembic migrations — simpler for a 7-day timeline, no migration history
-needed yet. Run it once after DATABASE_URL is set correctly:
+Plain create_all() is used instead of Alembic migrations — simpler for
+this project's 7-day scope, no migration history needed yet.
 
-    python create_tables.py
+Usage:
+    python create_tables.py            # create any missing tables
+    python create_tables.py --reset    # drop known tables first, then recreate
+                                        # (use this after a schema change)
 """
 
-from app.core.database import Base, engine
+import sys
 
-# Import every module that defines models so their tables are registered
-# on Base.metadata before create_all() runs. Modules with no tables yet
-# (auth, inventory, approvals, ai_engine) are intentionally not imported.
-from app.shared import models as shared_models  # noqa: F401
-from app.modules.products import models as products_models  # noqa: F401
-from app.modules.sales import models as sales_models  # noqa: F401
-from app.modules.operational_analysis import (  # noqa: F401
-    models as operational_analysis_models,
-)
-from app.modules.tasks import models as tasks_models  # noqa: F401
+from app import models_registry  # noqa: F401  (registers every model)
+from app.core.database import Base, engine
 
 
 def main() -> None:
+    if "--reset" in sys.argv:
+        print("Dropping existing tables (only ones defined in current models)...")
+        Base.metadata.drop_all(bind=engine)
+
     print("Creating tables on:", engine.url.render_as_string(hide_password=True))
     Base.metadata.create_all(bind=engine)
+
     print("Done. Tables now registered:")
     for table in Base.metadata.sorted_tables:
         print(f" - {table.name}")

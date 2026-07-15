@@ -8,10 +8,14 @@ Run locally with:
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app import models_registry  # noqa: F401  (registers every model at startup)
 from app.api.health import router as health_router
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.error_handlers import register_exception_handlers
+from app.modules.operational_analysis.operations_router import (
+    router as operations_router,
+)
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -32,4 +36,5 @@ register_exception_handlers(app)
 
 # --- Routers ---
 app.include_router(health_router, prefix="/api")
+app.include_router(operations_router, prefix="/api/operations", tags=["Operations"])
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)

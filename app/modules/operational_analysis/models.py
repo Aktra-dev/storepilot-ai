@@ -35,6 +35,7 @@ class FindingType(str, enum.Enum):
     STOCKOUT = "stockout"
     EXPIRY = "expiry"
     SALES_ANOMALY = "sales_anomaly"
+    OPERATIONAL = "operational"  # general operational finding from the AI
 
 
 class Severity(str, enum.Enum):

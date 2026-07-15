@@ -31,7 +31,8 @@ class TaskPriority(str, enum.Enum):
 
 
 class TaskStatus(str, enum.Enum):
-    PENDING = "pending"
+    PENDING_APPROVAL = "pending_approval"  # renamed in Step 7: task always
+    # waits for manager approval before it can move to IN_PROGRESS
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
@@ -57,7 +58,7 @@ class Task(Base):
     status: Mapped[TaskStatus] = mapped_column(
         SAEnum(TaskStatus, name="task_status_enum"),
         nullable=False,
-        default=TaskStatus.PENDING,
+        default=TaskStatus.PENDING_APPROVAL,
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

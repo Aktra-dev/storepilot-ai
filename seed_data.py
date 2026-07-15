@@ -134,7 +134,7 @@ def main() -> None:
                 description="Ajukan pemesanan ulang minimal 30 unit sebelum akhir minggu.",
                 priority=TaskPriority.HIGH,
                 assigned_role="staff",
-                status=TaskStatus.PENDING,
+                status=TaskStatus.PENDING_APPROVAL,
             )
             db.add(task)
             db.flush()

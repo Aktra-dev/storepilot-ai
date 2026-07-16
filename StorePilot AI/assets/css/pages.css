@@ -1,0 +1,915 @@
+/**
+ * StorePilot AI — Page Specific Stylesheet
+ * Location: STOREPILOT AI/assets/css/pages.css
+ *
+ * UPGRADE TARGET: Premium Enterprise SaaS (Linear, Stripe, Vercel standard)
+ * NOTE: Preserves all existing HTML selectors while applying modern, minimal, 
+ * glassmorphism-infused aesthetics with meticulous spacing and readability.
+ */
+
+/* ==================================================
+   1. GLOBAL PAGE STRUCTURES
+   ================================================== */
+.page-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    padding-bottom: var(--space-10);
+    animation: pageFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pageFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: var(--space-2);
+    flex-wrap: wrap;
+    gap: var(--space-4);
+}
+
+.page-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.page-title {
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    letter-spacing: -0.03em;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: 0;
+}
+
+.page-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+/* ==================================================
+   2. DASHBOARD
+   ================================================== */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--space-6);
+}
+
+.dashboard-summary {
+    grid-column: span 12;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-5);
+}
+
+.dashboard-main {
+    grid-column: span 8;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+.dashboard-sidebar {
+    grid-column: span 4;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+.dashboard-ai-insights {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(245, 247, 255, 0.6) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    box-shadow: 0 4px 20px -2px rgba(99, 102, 241, 0.05);
+}
+
+.operational-status-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.operational-status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-3) var(--space-4);
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius-medium);
+    border: 1px solid var(--glass-border);
+    transition: background-color var(--transition-fast);
+}
+
+.operational-status-item:hover {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+/* ==================================================
+   3. ANALYSIS
+   ================================================== */
+.analysis-layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+.analysis-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-5);
+}
+
+.analysis-progress-area {
+    padding: var(--space-5);
+    background: var(--glass-background);
+    border-radius: var(--radius-large);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-small);
+}
+
+.analysis-interpretation-panel {
+    border-left: 4px solid var(--color-primary);
+    background: linear-gradient(90deg, rgba(59, 130, 246, 0.05) 0%, rgba(255, 255, 255, 0.5) 100%);
+    padding: var(--space-5) var(--space-6);
+    border-radius: 0 var(--radius-large) var(--radius-large) 0;
+}
+
+.analysis-action-area {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--glass-border);
+}
+
+/* ==================================================
+   4. FINDINGS
+   ================================================== */
+.findings-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.finding-card {
+    will-change: transform;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--space-5);
+    align-items: flex-start;
+    padding: var(--space-5);
+    background: var(--glass-background);
+    border-radius: var(--radius-large);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-small);
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.finding-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
+}
+
+.finding-severity-indicator {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-medium);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-lg);
+}
+
+.finding-severity-indicator.critical { background: rgba(239, 68, 68, 0.1); color: var(--color-critical); }
+.finding-severity-indicator.warning { background: rgba(245, 158, 11, 0.1); color: var(--color-warning); }
+.finding-severity-indicator.info { background: rgba(14, 165, 233, 0.1); color: var(--color-info); }
+
+.finding-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.finding-title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.finding-meta {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+}
+
+/* ==================================================
+   5. APPROVALS
+   ================================================== */
+.approvals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: var(--space-5);
+}
+
+.approval-card {
+    will-change: transform;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-large);
+    box-shadow: var(--shadow-small);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.approval-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-medium);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+.approval-content {
+    padding: var(--space-5);
+    flex: 1;
+}
+
+.approval-status-presentation {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-3);
+}
+
+.approval-actions-layout {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    background: var(--color-background-secondary);
+    border-top: 1px solid var(--glass-border);
+    border-radius: 0 0 var(--radius-large) var(--radius-large);
+}
+
+.approval-actions-layout .btn {
+    flex: 1;
+}
+
+/* ==================================================
+   6. TASKS
+   ================================================== */
+.tasks-layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+.task-card {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-5);
+    background: var(--glass-background);
+    border-radius: var(--radius-large);
+    border: 1px solid var(--glass-border);
+    border-left: 4px solid var(--color-text-muted);
+    transition: box-shadow var(--transition-fast);
+}
+
+.task-card:hover {
+    box-shadow: var(--shadow-medium);
+}
+
+.task-card.active { border-left-color: var(--color-primary); }
+.task-card.completed { border-left-color: var(--color-success); }
+.task-card.blocked { border-left-color: var(--color-critical); }
+
+.task-header-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-3);
+}
+
+.task-timeline-spacing {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+    border-top: 1px dashed var(--glass-border);
+}
+
+.task-execution-section {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--space-4);
+}
+
+/* ==================================================
+   7. INVENTORY & SALES (SHARED DATA LAYOUTS)
+   ================================================== */
+.inventory-summary,
+.sales-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-5);
+    margin-bottom: var(--space-6);
+}
+
+.page-table-wrapper,
+.inventory-table-container,
+.sales-table-container {
+    background: var(--glass-background);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-large);
+    box-shadow: var(--shadow-small);
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 600px;
+}
+
+/* Premium Sticky Header Table */
+.page-table,
+.inventory-table,
+.sales-table {
+    width: 100%;
+    min-width: 800px;
+    border-collapse: separate;
+    border-spacing: 0;
+    text-align: left;
+}
+
+.page-table th,
+.inventory-table th,
+.sales-table th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: rgba(245, 247, 250, 0.95);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: var(--space-4) var(--space-5);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--glass-border);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.05); /* Extra separation for sticky */
+}
+
+.page-table td,
+.inventory-table td,
+.sales-table td {
+    padding: var(--space-4) var(--space-5);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    border-bottom: 1px solid var(--glass-border);
+    transition: background-color var(--transition-fast);
+}
+
+.page-table tbody tr:hover td,
+.inventory-table tbody tr:hover td,
+.sales-table tbody tr:hover td {
+    background-color: rgba(59, 130, 246, 0.02);
+}
+
+.page-table tbody tr:last-child td,
+.inventory-table tbody tr:last-child td,
+.sales-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Domain Specific Visuals */
+.inventory-risk-badge {
+    display: inline-flex;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-small);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+}
+
+.sales-anomaly-row {
+    background-color: rgba(245, 158, 11, 0.03);
+}
+
+.sales-anomaly-row:hover td {
+    background-color: rgba(245, 158, 11, 0.06);
+}
+
+.sales-trend-visualization {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: var(--font-weight-medium);
+}
+
+.inventory-analysis-section,
+.sales-recommendation-section {
+    margin-top: var(--space-6);
+    padding: var(--space-6);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 247, 255, 0.8) 100%);
+    border-radius: var(--radius-large);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+/* ==================================================
+   8. PAGE EMPTY STATES
+   ================================================== */
+.page-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--space-12) var(--space-6);
+    background: rgba(255, 255, 255, 0.4);
+    border: 1px dashed var(--glass-border);
+    border-radius: var(--radius-large);
+    min-height: 300px;
+    margin: var(--space-6) 0;
+}
+
+.page-empty-icon {
+    font-size: var(--font-size-3xl);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-4);
+    opacity: 0.5;
+}
+
+.page-empty-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-2);
+}
+
+.page-empty-desc {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    max-width: 400px;
+    line-height: 1.6;
+    margin-bottom: var(--space-5);
+}
+
+/* ==================================================
+   9. PAGE AI PANELS
+   ================================================== */
+.page-ai-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: var(--radius-large);
+    box-shadow: 0 10px 30px -5px rgba(99, 102, 241, 0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.page-ai-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #4f46e5 0%, #0ea5e9 100%);
+}
+
+.page-ai-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.page-ai-title {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-bold);
+    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    margin: 0;
+}
+
+/* ==================================================
+   10. RESPONSIVE ALIGNMENT
+   ================================================== */
+@media screen and (max-width: 1024px) {
+    .dashboard-main,
+    .dashboard-sidebar {
+        grid-column: span 12;
+    }
+    
+    .approvals-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-4);
+    }
+    
+    .page-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .page-actions .btn {
+        flex: 1;
+    }
+
+    .dashboard-grid,
+    .analysis-layout,
+    .tasks-layout {
+        gap: var(--space-4);
+    }
+
+    .finding-card {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
+    
+    .finding-severity-indicator {
+        width: 100%;
+        height: auto;
+        padding: var(--space-2);
+        border-radius: var(--radius-small);
+    }
+
+    .page-ai-panel,
+    .analysis-interpretation-panel,
+    .inventory-analysis-section,
+    .sales-recommendation-section {
+        padding: var(--space-4);
+    }
+}
+
+/* ==================================================
+   11. DASHBOARD GRID (matches actual dashboard.html markup)
+   ================================================== */
+/* Premium Dashboard Grid - Fix layout jelek */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--space-5);
+    align-items: stretch;
+}
+
+/* Top row - 4 equal cards */
+.dashboard-grid .operational-hero {
+    grid-column: span 12;
+}
+
+.dashboard-grid .metric-grid {
+    grid-column: span 12;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-5);
+}
+
+/* Operational Hero - pakai token biar dark mode aman */
+.operational-hero {
+    background: var(--glass-bg-strong);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-large);
+    box-shadow: var(--glass-shadow);
+    padding: var(--space-6);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 148px;
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.operational-hero:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glass-shadow-elevated);
+}
+
+.operational-hero-header {
+    margin-bottom: var(--space-3);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+}
+
+.operational-status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+}
+
+.operational-status-label {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.3;
+}
+
+.operational-summary {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-5);
+}
+
+.risk-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-4);
+}
+
+.dashboard-section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+}
+
+.dashboard-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-1);
+}
+
+.dashboard-section-title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.dashboard-section-description {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin: var(--space-1) 0 0 0;
+    line-height: 1.5;
+}
+
+.proposed-actions-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+/* Desktop layout - premium 12-col */
+@media screen and (min-width: 1100px) {
+    .dashboard-grid .operational-hero {
+        grid-column: span 3;
+    }
+    .dashboard-grid .metric-grid {
+        grid-column: span 9;
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .dashboard-grid > .dashboard-section:nth-of-type(1) {
+        grid-column: span 8;
+    }
+    .dashboard-grid > .dashboard-section:nth-of-type(2) {
+        grid-column: span 4;
+    }
+    .dashboard-grid > .ai-intelligence-panel {
+        grid-column: span 12;
+    }
+}
+
+/* Tablet */
+@media screen and (min-width: 768px) and (max-width: 1099px) {
+    .dashboard-grid .operational-hero {
+        grid-column: span 4;
+    }
+    .dashboard-grid .metric-grid {
+        grid-column: span 8;
+    }
+}
+
+
+/* ==================================================
+   12. AI INTELLIGENCE PANEL (matches ai-panel-* markup)
+   ================================================== */
+.ai-intelligence-panel {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(245, 247, 255, 0.85) 100%);
+    border: 1px solid rgba(99, 102, 241, 0.25);
+    border-radius: var(--radius-large);
+    box-shadow: 0 8px 30px 0 rgba(99, 102, 241, 0.05);
+    padding: var(--space-6);
+    position: relative;
+    overflow: hidden;
+}
+
+.ai-intelligence-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #4f46e5 0%, #0ea5e9 100%);
+}
+
+.ai-panel-header {
+    margin-bottom: var(--space-3);
+}
+
+.ai-panel-brand {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+
+.ai-panel-content {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-primary);
+    line-height: 1.6;
+    margin: 0 0 var(--space-2) 0;
+}
+
+.ai-panel-summary {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+
+/* ==================================================
+   13. ANALYSIS PAGE
+   ================================================== */
+.analysis-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+.analysis-trigger {
+    background: var(--glass-background);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-large);
+    box-shadow: var(--shadow-small);
+    padding: var(--space-10) var(--space-6);
+}
+
+.analysis-trigger-content {
+    max-width: 560px;
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.analysis-trigger-title {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--space-3);
+}
+
+.analysis-trigger-description {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+    margin-bottom: var(--space-2);
+}
+
+.analysis-trigger-action {
+    margin-top: var(--space-2);
+}
+
+.analysis-progress,
+.analysis-result {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+.analysis-result-actions {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: flex-end;
+}
+
+
+/* ==================================================
+   14. FINDINGS / APPROVALS / TASKS / INVENTORY / SALES
+   PAGE LAYOUT WRAPPERS & TOOLBARS
+   ================================================== */
+.findings-layout,
+.approval-layout,
+.task-monitoring-layout,
+.inventory-layout,
+.sales-layout {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+.findings-toolbar,
+.task-toolbar,
+.inventory-toolbar,
+.sales-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.task-toolbar-header,
+.inventory-toolbar-header,
+.sales-toolbar-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.task-toolbar-actions,
+.inventory-toolbar-actions,
+.sales-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+.findings-summary,
+.approval-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-5);
+}
+
+.findings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: var(--space-5);
+}
+
+.approval-list,
+.task-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+
+/* ==================================================
+   15. RESPONSIVE — NEW PAGE-LAYOUT CLASSES
+   ================================================== */
+@media screen and (max-width: 768px) {
+    .findings-toolbar,
+    .task-toolbar,
+    .inventory-toolbar,
+    .sales-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .findings-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .analysis-trigger {
+        padding: var(--space-6) var(--space-4);
+    }
+}
+

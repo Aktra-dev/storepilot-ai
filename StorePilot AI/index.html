@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <script>
+    (function () {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="StorePilot AI — Masuk ke intelijen operasional toko Anda.">
+    <title>StorePilot AI — Masuk</title>
+
+    <!-- Font Integration -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="assets/css/variables.css">
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/layout.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/pages.css">
+    
+    <style>
+        .login-screen {
+            min-height: 100vh;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-6);
+            position: relative;
+        }
+
+        /* Tombol Tema Melayang di Pojok Kanan Atas */
+        .theme-toggle-wrapper {
+            position: absolute;
+            top: var(--space-6);
+            right: var(--space-6);
+            z-index: 10;
+        }
+
+        .theme-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            font-size: var(--font-size-sm);
+            font-weight: var(--font-weight-medium);
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            border: 1px solid var(--color-border);
+            background: var(--glass-bg-strong);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            color: var(--color-text-primary);
+            transition: all var(--transition-fast);
+        }
+
+        .theme-toggle-btn:hover {
+            border-color: var(--color-primary);
+            transform: translateY(-1px);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            background: var(--glass-bg-strong);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-floating);
+            padding: var(--space-8);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
+            animation: fadeIn 0.5s ease-out-back;
+        }
+
+        .login-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-3);
+            text-align: center;
+        }
+
+        .login-brand-mark {
+            width: 52px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-primary-soft);
+            border: 1px solid var(--color-primary-border);
+            border-radius: var(--radius-lg);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-primary);
+            font-size: var(--font-size-lg);
+            transition: transform var(--transition-fast);
+        }
+
+        .login-brand:hover .login-brand-mark {
+            transform: scale(1.05) rotate(-3deg);
+        }
+
+        .login-brand-name {
+            font-size: var(--font-size-xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .login-brand-subtitle {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted);
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-1.5);
+        }
+
+        .form-field label {
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-semibold);
+            color: var(--color-text-secondary);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .form-field input {
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            background: rgba(255, 255, 255, 0.6);
+            font-size: var(--font-size-sm);
+            color: var(--color-text-primary);
+            transition: all var(--transition-fast);
+        }
+
+        [data-theme="dark"] .form-field input {
+            background: rgba(15, 23, 42, 0.4);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .form-field input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px var(--color-primary-soft);
+            background: #ffffff;
+        }
+
+        [data-theme="dark"] .form-field input:focus {
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+
+        .login-submit {
+            width: 100%;
+            margin-top: var(--space-2);
+            padding: var(--space-3);
+            font-weight: var(--font-weight-semibold);
+            letter-spacing: 0.01em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+        }
+
+        .login-submit:disabled {
+            opacity: 0.8;
+            cursor: not-allowed;
+        }
+
+        .login-status {
+            font-size: var(--font-size-xs);
+            color: var(--color-text-muted);
+            text-align: center;
+            line-height: 1.6;
+            min-height: 2.4em; /* Mencegah layout shift saat teks muncul */
+            transition: color var(--transition-fast);
+        }
+
+        .login-status.is-visible {
+            color: var(--color-warning-dark);
+            font-weight: var(--font-weight-medium);
+        }
+
+        /* Loading Spinner untuk Button */
+        .btn-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #ffffff;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        .login-submit.is-loading .btn-spinner {
+            display: block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-screen">
+        <!-- Tombol Toggle Tema -->
+        <div class="theme-toggle-wrapper">
+            <button id="theme-toggle" class="theme-toggle-btn" aria-label="Ganti Tema">
+                <span id="theme-icon">🌙</span> <span id="theme-text">Gelap</span>
+            </button>
+        </div>
+
+        <div class="login-card">
+            <div class="login-brand">
+                <div class="login-brand-mark">SP</div>
+                <h1 class="login-brand-name">StorePilot AI</h1>
+                <p class="login-brand-subtitle">Intelijen Operasional Toko</p>
+            </div>
+
+            <form class="login-form" id="loginForm" novalidate>
+                <div class="form-field">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" name="email" placeholder="nama@tokoanda.com" autocomplete="username" required>
+                </div>
+                <div class="form-field">
+                    <label for="loginPassword">Kata Sandi</label>
+                    <input type="password" id="loginPassword" name="password" placeholder="Masukkan kata sandi" autocomplete="current-password" required>
+                </div>
+
+                <button type="submit" class="button button-primary login-submit" id="submitBtn">
+                    <div class="btn-spinner" aria-hidden="true"></div>
+                    <span id="btnText">Masuk Ke Sistem</span>
+                </button>
+                <p class="login-status" id="loginStatus" role="status" aria-live="polite"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Panggil Dependencies Utama StorePilot -->
+    <script src="js/utils.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+
+    <script>
+        "use strict";
+        (function () {
+            const form = document.getElementById("loginForm");
+            const status = document.getElementById("loginStatus");
+            const submitBtn = document.getElementById("submitBtn");
+            const btnText = document.getElementById("btnText");
+            const API = window.StorePilotAPI;
+
+            if (!form || !status || !submitBtn || !btnText || !API) return;
+
+            // Regex validasi struktur email sederhana
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            form.addEventListener("submit", async function (event) {
+                event.preventDefault();
+                
+                const email = document.getElementById("loginEmail").value.trim();
+                const password = document.getElementById("loginPassword").value;
+
+                // Reset Status & Efek Error
+                status.classList.remove("is-visible");
+                status.textContent = "";
+
+                // 1. Validasi Input Kosong
+                if (!email || !password) {
+                    status.textContent = "Harap isi lengkap email dan kata sandi Anda.";
+                    status.classList.add("is-visible");
+                    return;
+                }
+
+                // 2. Validasi Format Email
+                if (!emailRegex.test(email)) {
+                    status.textContent = "Format alamat email tidak valid (contoh: nama@toko.com).";
+                    status.classList.add("is-visible");
+                    return;
+                }
+
+                // 3. Proses Login dengan Backend
+                submitBtn.disabled = true;
+                submitBtn.classList.add("is-loading");
+                btnText.textContent = "Memverifikasi...";
+
+                try {
+                    // Call backend login endpoint
+                    const response = await API.login(email, password);
+                    
+                    // Simpan tokens
+                    API.setTokens(response.access_token, response.refresh_token);
+                    
+                    // Simpan user info
+                    if (response.user) {
+                        localStorage.setItem("user", JSON.stringify(response.user));
+                    }
+                    
+                    status.textContent = "Login berhasil! Mengarahkan...";
+                    status.style.color = "var(--color-success-dark)";
+                    
+                    // Redirect to dashboard
+                    window.location.href = "pages/dashboard.html";
+                
+                } catch (error) {
+                    status.classList.add("is-visible");
+                    status.style.color = "";
+                    
+                    // Tampilkan pesan error dari backend atau default
+                    if (error instanceof API.StorePilotAPIError) {
+                        status.textContent = error.message || "Email atau kata sandi salah.";
+                    } else {
+                        status.textContent = "Tidak dapat terhubung ke layanan. Silakan coba lagi.";
+                    }
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove("is-loading");
+                    btnText.textContent = "Masuk Ke Sistem";
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

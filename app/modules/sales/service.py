@@ -57,7 +57,7 @@ class SalesService:
             raise NotFoundException(f"Sale {sale_id} not found")
         return sale
 
-    def list(
+    def get_list(
         self,
         product_id: Optional[uuid.UUID] = None,
         start_date: Optional[date] = None,

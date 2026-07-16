@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="StorePilot AI — Risiko Inventaris. Pantau kondisi stok dan risiko inventaris yang terdeteksi.">
+    <title>StorePilot AI — Risiko Inventaris</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Script Deteksi Mode Gelap Instan -->
+    <script>
+        (function () {
+            const saved = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = saved || (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+
+    <!-- CSS Stylesheets -->
+    <link rel="stylesheet" href="../assets/css/variables.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../assets/css/layout.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+    <link rel="stylesheet" href="../assets/css/pages.css">
+
+    <!-- Gaya Khusus Glassmorphism & Penyesuaian Risiko Inventaris -->
+    <style>
+        .inventory-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* 1. Standardisasi Premium Empty State */
+        .empty-state {
+            background: var(--glass-bg-strong, rgba(255, 255, 255, 0.45)) ;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1.5px dashed var(--color-border, rgba(0, 0, 0, 0.08)) ;
+            border-radius: var(--radius-xl, 16px);
+            padding: 4rem 2rem ;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 0.75rem;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .empty-state-icon {
+            color: var(--color-text-muted, #64748b);
+            opacity: 0.6;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 2. Panel Analisis Risiko Premium (AI Intelligence Panel) */
+        .ai-intelligence-panel {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.03) 0%, rgba(37, 99, 235, 0.07) 100%);
+            border: 1px solid rgba(37, 99, 235, 0.15);
+            border-radius: var(--radius-xl, 16px);
+            padding: 1.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .ai-panel-header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--color-primary, #2563eb);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-panel-content {
+            color: var(--color-text-muted, #64748b);
+            font-size: var(--font-size-sm);
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+        }
+
+        /* 3. Filter Buttons Custom Styling */
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .filter-button {
+            background: var(--glass-bg-weak, rgba(255, 255, 255, 0.2));
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-lg, 12px);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            color: var(--color-text-muted, #64748b);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-button:hover {
+            background: var(--glass-bg-strong, rgba(255, 255, 255, 0.4));
+            color: var(--color-text-primary, #0f172a);
+        }
+
+        .filter-button.active {
+            background: var(--color-primary, #2563eb) ;
+            color: #ffffff ;
+            border-color: var(--color-primary, #2563eb) ;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        /* 4. Table Responsive Style Penyelarasan */
+        .table-responsive {
+            background: var(--glass-bg-strong, rgba(255, 255, 255, 0.45));
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
+            border-radius: var(--radius-xl, 16px);
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .data-table th {
+            background: rgba(0, 0, 0, 0.02);
+            padding: 1rem 1.25rem;
+            font-weight: 600;
+            font-size: var(--font-size-sm);
+            color: var(--color-text-primary, #0f172a);
+            border-bottom: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
+        }
+
+        .data-table td {
+            padding: 1rem 1.25rem;
+            font-size: var(--font-size-sm);
+            color: var(--color-text-muted, #64748b);
+            border-bottom: 1px solid var(--color-border, rgba(0, 0, 0, 0.05));
+        }
+
+        /* --- SINKRONISASI AKTIF UNTUK MODE GELAP (DARK MODE) --- */
+        [data-theme="dark"] .empty-state {
+            background: rgba(15, 23, 42, 0.25) ;
+            border-color: rgba(255, 255, 255, 0.08) ;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        [data-theme="dark"] .filter-button {
+            background: rgba(30, 41, 59, 0.4);
+            border-color: rgba(255, 255, 255, 0.08);
+            color: #94a3b8;
+        }
+
+        [data-theme="dark"] .filter-button:hover {
+            background: rgba(30, 41, 59, 0.8);
+            color: #f1f5f9;
+        }
+
+        [data-theme="dark"] .table-responsive {
+            background: rgba(15, 23, 42, 0.2) ;
+            border-color: rgba(255, 255, 255, 0.08) ;
+        }
+
+        [data-theme="dark"] .data-table th {
+            background: rgba(255, 255, 255, 0.02);
+            color: #f1f5f9;
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        [data-theme="dark"] .data-table td {
+            color: #cbd5e1;
+            border-color: rgba(255, 255, 255, 0.04);
+        }
+
+        html[data-theme="dark"] .ai-intelligence-panel,
+        [data-theme="dark"] .ai-intelligence-panel {
+            background: #1e293b ; 
+            background-image: none ; 
+            border-color: #334155 ;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) ;
+        }
+
+        html[data-theme="dark"] .ai-intelligence-panel *,
+        [data-theme="dark"] .ai-intelligence-panel * {
+            color: #f1f5f9 ; 
+        }
+
+        html[data-theme="dark"] .ai-panel-header,
+        [data-theme="dark"] .ai-panel-header {
+            color: #3b82f6 ;
+        }
+    </style>
+</head>
+<body>
+
+  <div class="app-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark">
+          <span style="font-weight: var(--font-weight-bold); color: var(--color-primary); font-size: var(--font-size-base);">SP</span>
+        </div>
+        <div class="brand-content">
+          <span class="brand-name">StorePilot AI</span>
+          <span class="brand-subtitle">Intelijen Operasional</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Navigasi utama">
+        <div class="nav-section">
+          <span class="nav-section-label">OPERASIONAL</span>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="dashboard.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Ringkasan</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="analysis.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Analisis Operasional</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="findings.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Temuan AI</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="approvals.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 11 12 14 22 4"/>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Persetujuan Tugas</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="tasks.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Pemantauan Tugas</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="inventory.html" class="nav-link active" aria-current="page">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Risiko Inventaris</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="sales.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Anomali Penjualan</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <!-- SIDEBAR FOOTER -->
+      <div class="sidebar-footer">
+        <div class="sidebar-profile">
+          <!-- ICON AVATAR DI SINI TELAH DIHAPUS SEPENUHNYA -->
+          <div class="profile-info">
+            <span class="profile-name" id="sidebarProfileName"></span>
+            <span class="profile-role" id="sidebarProfileRole"></span>
+          </div>
+        </div>
+        <div class="sidebar-footer-actions" style="width: 100%; display: flex; gap: var(--space-2, 8px); margin-top: var(--space-2);">
+          <button type="button" class="button button-ghost" style="font-size: var(--font-size-xs); flex: 1;">Pengaturan</button>
+          <a href="../index.html" class="button button-ghost" style="font-size: var(--font-size-xs); flex: 1; text-align: center; text-decoration: none;">Keluar</a>
+        </div>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- MAIN SHELL -->
+    <div class="main-shell">
+      <header class="top-header">
+        <button
+          type="button"
+          class="mobile-menu-button"
+          id="mobileMenuButton"
+          aria-label="Buka navigasi"
+          aria-controls="sidebar"
+          aria-expanded="false"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+
+        <div class="header-context">
+          <h1 class="header-title">Risiko Inventaris</h1>
+          <p class="header-description">Pantau kondisi stok dan risiko inventaris yang terdeteksi</p>
+        </div>
+
+        <div class="header-actions">
+          <div class="store-context">
+            <span class="store-context-label">TOKO</span>
+            <span class="store-context-name" style="font-weight: 600; color: var(--color-primary, #2563eb); display: flex; align-items: center; gap: 6px;">
+              <span style="display: inline-block; width: 8px; height: 8px; background: #94a3b8; border-radius: 50%;"></span>
+              Belum Dipilih
+            </span>
+          </div>
+
+          <!-- Tombol Tema -->
+          <button
+            type="button"
+            id="theme-toggle"
+            class="header-action-button"
+            aria-label="Ubah Tema"
+            style="font-size: 1.1rem; background: none; border: none; cursor: pointer;"
+          >
+            <span id="theme-icon">🌙</span>
+          </button>
+
+          <!-- Tombol Notifikasi -->
+          <button
+            type="button"
+            class="header-action-button notification-button"
+            aria-label="Notifikasi"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <div class="content-container">
+          <div class="inventory-layout">
+
+            <!-- TOOLBAR DAN FILTER INVENTARIS -->
+            <div class="inventory-toolbar" id="inventoryToolbar">
+              <div class="inventory-toolbar-header">
+                <div>
+                  <h2 style="font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-1);">Status Inventaris Toko</h2>
+                  <p style="font-size: var(--font-size-sm); color: var(--color-text-muted);">Pantau tingkat stok, risiko kehabisan stok, dan masalah kedaluwarsa produk secara real-time.</p>
+                </div>
+              </div>
+              <div class="inventory-toolbar-actions" style="margin-top: var(--space-3);">
+                <div class="filter-group">
+                  <button type="button" class="filter-button active" data-inventory-filter="all">Semua</button>
+                  <button type="button" class="filter-button" data-inventory-filter="critical">Kritis</button>
+                  <button type="button" class="filter-button" data-inventory-filter="high">Risiko Tinggi</button>
+                  <button type="button" class="filter-button" data-inventory-filter="normal">Normal</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- RINGKASAN METRIK INVENTARIS -->
+            <div class="metric-grid" id="inventorySummary">
+              <div class="empty-state">
+                <span class="empty-state-icon">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21.21 15.89A10 10 0 1 1 8 2.83"/>
+                    <path d="M22 12A10 10 0 0 0 12 2v10z"/>
+                  </svg>
+                </span>
+                <h3 style="font-weight: var(--font-weight-semibold); font-size: 1.1rem; margin-top: 0.5rem;">Ringkasan inventaris belum tersedia</h3>
+                <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); max-width: 420px;">
+                  Ringkasan kuantitatif kondisi, efisiensi stok, dan kalkulasi risiko kesehatan inventaris akan langsung dimuat setelah sistem backend mengirim data analisis terbaru.
+                </p>
+              </div>
+            </div>
+
+            <!-- TABEL DATA INVENTARIS -->
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Produk</th>
+                    <th scope="col">Stok Saat Ini</th>
+                    <th scope="col">Sisa Hari Potensial</th>
+                    <th scope="col">Kedaluwarsa</th>
+                    <th scope="col">Tingkat Risiko</th>
+                  </tr>
+                </thead>
+                <tbody id="inventoryTableBody"></tbody>
+              </table>
+            </div>
+
+            <!-- EMPTY STATE DATA INVENTARIS -->
+            <div id="inventoryEmptyState" class="empty-state">
+              <span class="empty-state-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                  <line x1="12" y1="22.08" x2="12" y2="12"/>
+                </svg>
+              </span>
+              <h3 style="font-weight: var(--font-weight-semibold); font-size: 1.1rem; margin-top: 0.5rem;">Belum ada data inventaris</h3>
+              <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); max-width: 420px;">
+                Tabel monitoring stok dan kondisi kedaluwarsa barang masih kosong. Informasi produk akan tersaji di sini setelah integrasi API berhasil.
+              </p>
+            </div>
+
+            <!-- INTELIJEN STATUS & ANALISIS RISIKO -->
+            <div class="ai-intelligence-panel" id="inventoryIntelligence">
+              <div class="ai-panel-header">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                <span>Analisis Risiko Inventaris AI</span>
+              </div>
+              <p class="ai-panel-content">
+                Fitur asisten cerdas StorePilot AI akan menganalisis tren ritme penjualan harian Anda untuk mendeteksi risiko *out-of-stock* secara dini serta mendeteksi barang mendekati *expired date* agar program diskon/promosi dapat segera diaktifkan.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- SCRIPTS JS UTAMA -->
+  <script src="../js/utils.js"></script>
+  <script src="../js/components.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/app.js"></script>
+
+  <!-- Catatan: Mobile menu toggle & theme toggle sudah ditangani secara global oleh app.js -->
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const API = window.StorePilotAPI;
+      if (!API) return;
+
+      // Auth check
+      if (!API.isLoggedIn()) {
+        window.location.href = '../index.html';
+        return;
+      }
+
+      // Sidebar profile
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (user.name) {
+        document.getElementById('sidebarProfileName').textContent = user.name;
+        document.getElementById('sidebarProfileRole').textContent = user.role || 'Staff';
+      }
+
+      // Logout
+      document.querySelector('a[href="../index.html"]').addEventListener('click', (e) => {
+        e.preventDefault();
+        API.clearTokens();
+        window.location.href = '../index.html';
+      });
+
+      // Filter Buttons Active Switcher
+      const filterButtons = document.querySelectorAll('.filter-button');
+      filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+
+      try {
+        // 0. Fetch products for name mapping
+        let productMap = {};
+        try {
+          const products = await API.getProducts();
+          if (Array.isArray(products)) {
+            products.forEach(p => { productMap[p.id] = p.name || 'Unknown'; });
+          }
+        } catch (e) { /* ignore */ }
+
+        // 1. Fetch inventory list
+        const inventory = await API.getInventory();
+        const tableBody = document.getElementById('inventoryTableBody');
+        const emptyState = document.getElementById('inventoryEmptyState');
+
+        if (tableBody && inventory && Array.isArray(inventory) && inventory.length > 0) {
+          emptyState.style.display = 'none';
+          tableBody.innerHTML = inventory.map(item => {
+            const name = productMap[item.product_id] || item.product_id || 'Unknown';
+            const qty = item.quantity ?? 0;
+            const expiry = item.expiry_date ? new Date(item.expiry_date).toLocaleDateString('id-ID') : 'Tidak ada';
+            const daysLeft = item.expiry_date ? Math.ceil((new Date(item.expiry_date) - new Date()) / (1000 * 60 * 60 * 24)) : '-';
+            
+            let riskBadge = '<span class="badge badge-medium">Normal</span>';
+            if (qty <= 0) riskBadge = '<span class="badge badge-high">Kritis</span>';
+            else if (daysLeft !== '-' && daysLeft < 7 && daysLeft >= 0) riskBadge = '<span class="badge badge-medium">Segera Expired</span>';
+            else if (daysLeft !== '-' && daysLeft < 0) riskBadge = '<span class="badge badge-high">Expired</span>';
+            
+            return `<tr>
+              <td>${name}</td>
+              <td><strong>${qty}</strong></td>
+              <td>${daysLeft}</td>
+              <td>${expiry}</td>
+              <td>${riskBadge}</td>
+            </tr>`;
+          }).join('');
+        }
+
+        // 2. Fetch inventory risks (from dashboard)
+        const risks = await API.getInventoryRisks();
+        const summaryEl = document.getElementById('inventorySummary');
+        if (summaryEl && risks && Array.isArray(risks) && risks.length > 0) {
+          const critical = risks.filter(r => r.severity === 'critical').length;
+          const high = risks.filter(r => r.severity === 'high').length;
+          const total = inventory ? inventory.length : 0;
+          summaryEl.innerHTML = `
+            <div class="metric-card">
+              <span class="metric-title">Total Batch</span>
+              <span class="metric-value">${total}</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-title">Risiko Kritis</span>
+              <span class="metric-value" style="color: var(--color-critical);">${critical}</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-title">Risiko Tinggi</span>
+              <span class="metric-value" style="color: var(--color-high);">${high}</span>
+            </div>
+          `;
+        }
+
+        // 3. Update AI panel
+        const aiPanel = document.getElementById('inventoryIntelligence');
+        if (aiPanel && risks && Array.isArray(risks) && risks.length > 0) {
+          const topRisk = risks[0];
+          aiPanel.innerHTML = `
+            <div class="ai-panel-header">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span>Analisis Risiko Inventaris AI</span>
+            </div>
+            <p class="ai-panel-content">
+              Risiko tertinggi: <strong>${topRisk.title}</strong>.<br>
+              ${topRisk.description || 'Sistem mendeteksi potensi masalah stok yang perlu ditindaklanjuti.'}<br><br>
+              Total ${risks.length} risiko terdeteksi — ${critical} kritis, ${high} tinggi.
+            </p>
+          `;
+        }
+
+      } catch (err) {
+        console.error('Inventory load error:', err);
+        if (err.status === 401) {
+          API.clearTokens();
+          window.location.href = '../index.html';
+        }
+      }
+    });
+  </script>
+</body>
+</html>

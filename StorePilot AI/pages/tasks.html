@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="StorePilot AI — Pemantauan Tugas. Pantau pelaksanaan tindakan operasional yang telah disetujui.">
+    <title>StorePilot AI — Pemantauan Tugas</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Script Deteksi Mode Gelap Instan -->
+    <script>
+        (function () {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <!-- CSS Stylesheets -->
+    <link rel="stylesheet" href="../assets/css/variables.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../assets/css/layout.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+    <link rel="stylesheet" href="../assets/css/pages.css">
+
+    <!-- Gaya Khusus Glassmorphism & Penyesuaian Pemantauan Tugas -->
+    <style>
+        .task-monitoring-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* 1. Standardisasi Premium Empty State */
+        .empty-state {
+            background: var(--glass-bg-strong, rgba(255, 255, 255, 0.45)) !important;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1.5px dashed var(--color-border, rgba(0, 0, 0, 0.08)) !important;
+            border-radius: var(--radius-xl, 16px);
+            padding: 4rem 2rem !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 0.75rem;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .empty-state-icon {
+            color: var(--color-text-muted, #64748b);
+            opacity: 0.6;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 2. Panel Alur Pelaksanaan Premium (AI Intelligence Panel) */
+        .ai-intelligence-panel {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.03) 0%, rgba(37, 99, 235, 0.07) 100%);
+            border: 1px solid rgba(37, 99, 235, 0.15);
+            border-radius: var(--radius-xl, 16px);
+            padding: 1.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .ai-panel-header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--color-primary, #2563eb);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-panel-content {
+            color: var(--color-text-muted, #64748b);
+            font-size: var(--font-size-sm);
+            line-height: 1.6;
+            margin-bottom: 0.75rem;
+        }
+
+        .ai-panel-summary {
+            font-weight: 600;
+            color: var(--color-text-primary, #0f172a);
+            font-size: var(--font-size-sm);
+        }
+
+        /* 3. Filter Buttons Custom Styling */
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .filter-button {
+            background: var(--glass-bg-weak, rgba(255, 255, 255, 0.2));
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--color-border, rgba(0, 0, 0, 0.08));
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-lg, 12px);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            color: var(--color-text-muted, #64748b);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-button:hover {
+            background: var(--glass-bg-strong, rgba(255, 255, 255, 0.4));
+            color: var(--color-text-primary, #0f172a);
+        }
+
+        .filter-button.active {
+            background: var(--color-primary, #2563eb) !important;
+            color: #ffffff !important;
+            border-color: var(--color-primary, #2563eb) !important;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        /* --- SINKRONISASI AKTIF UNTUK MODE GELAP (DARK MODE) --- */
+        [data-theme="dark"] .empty-state {
+            background: rgba(15, 23, 42, 0.25) !important;
+            border-color: rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        [data-theme="dark"] .filter-button {
+            background: rgba(30, 41, 59, 0.4);
+            border-color: rgba(255, 255, 255, 0.08);
+            color: #94a3b8;
+        }
+
+        [data-theme="dark"] .filter-button:hover {
+            background: rgba(30, 41, 59, 0.8);
+            color: #f1f5f9;
+        }
+
+        html[data-theme="dark"] .ai-intelligence-panel,
+        [data-theme="dark"] .ai-intelligence-panel {
+            background: #1e293b !important; 
+            background-image: none !important; 
+            border-color: #334155 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        html[data-theme="dark"] .ai-intelligence-panel *,
+        [data-theme="dark"] .ai-intelligence-panel * {
+            color: #f1f5f9 !important; 
+        }
+
+        html[data-theme="dark"] .ai-panel-header,
+        [data-theme="dark"] .ai-panel-header {
+            color: #3b82f6 !important;
+        }
+    </style>
+</head>
+<body>
+
+  <div class="app-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark">
+          <span style="font-weight: var(--font-weight-bold); color: var(--color-primary); font-size: var(--font-size-base);">SP</span>
+        </div>
+        <div class="brand-content">
+          <span class="brand-name">StorePilot AI</span>
+          <span class="brand-subtitle">Intelijen Operasional</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Navigasi utama">
+        <div class="nav-section">
+          <span class="nav-section-label">OPERASIONAL</span>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="dashboard.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Ringkasan</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="analysis.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Analisis Operasional</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="findings.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Temuan AI</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="approvals.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 11 12 14 22 4"/>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Persetujuan Tugas</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="tasks.html" class="nav-link active" aria-current="page">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Pemantauan Tugas</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="inventory.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Risiko Inventaris</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="sales.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Anomali Penjualan</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <!-- SIDEBAR FOOTER -->
+      <div class="sidebar-footer">
+        <div class="sidebar-profile">
+          <!-- ICON AVATAR DI SINI TELAH DIHAPUS SEPENUHNYA -->
+          <div class="profile-info">
+            <span class="profile-name" id="sidebarProfileName"></span>
+            <span class="profile-role" id="sidebarProfileRole"></span>
+          </div>
+        </div>
+        <div class="sidebar-footer-actions" style="width: 100%; display: flex; gap: var(--space-2, 8px); margin-top: var(--space-2);">
+          <button type="button" class="button button-ghost" style="font-size: var(--font-size-xs); flex: 1;">Pengaturan</button>
+          <a href="../index.html" class="button button-ghost" style="font-size: var(--font-size-xs); flex: 1; text-align: center; text-decoration: none;">Keluar</a>
+        </div>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <!-- MAIN SHELL -->
+    <div class="main-shell">
+      <header class="top-header">
+        <button
+          type="button"
+          class="mobile-menu-button"
+          id="mobileMenuButton"
+          aria-label="Buka navigasi"
+          aria-controls="sidebar"
+          aria-expanded="false"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+
+        <div class="header-context">
+          <h1 class="header-title">Pemantauan Tugas</h1>
+          <p class="header-description">Pantau pelaksanaan tindakan operasional yang telah disetujui</p>
+        </div>
+
+        <div class="header-actions">
+          <div class="store-context">
+            <span class="store-context-label">TOKO</span>
+            <span class="store-context-name" style="font-weight: 600; color: var(--color-primary, #2563eb); display: flex; align-items: center; gap: 6px;">
+              <span style="display: inline-block; width: 8px; height: 8px; background: #94a3b8; border-radius: 50%;"></span>
+              Belum Dipilih
+            </span>
+          </div>
+
+          <!-- Tombol Tema (Anti-Bentrok) -->
+          <button
+            type="button"
+            id="theme-toggle"
+            class="header-action-button"
+            aria-label="Ubah Tema"
+            style="font-size: 1.1rem; background: none; border: none; cursor: pointer;"
+          >
+            <span id="theme-icon">🌙</span>
+          </button>
+
+          <!-- Tombol Notifikasi -->
+          <button
+            type="button"
+            class="header-action-button notification-button"
+            aria-label="Notifikasi"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <div class="content-container">
+          <div class="task-monitoring-layout">
+
+            <!-- TOOLBAR DAN FILTER TUGAS -->
+            <div class="task-toolbar" id="taskToolbar">
+              <div class="task-toolbar-header">
+                <div>
+                  <h2 style="font-size: var(--font-size-xl); font-weight: var(--font-weight-semibold); margin-bottom: var(--space-1);">Pemantauan Tugas Operasional</h2>
+                  <p style="font-size: var(--font-size-sm); color: var(--color-text-muted);">Pantau status pelaksanaan tugas yang telah disetujui oleh manajer dan diteruskan ke tim operasional.</p>
+                </div>
+              </div>
+              <div class="task-toolbar-actions" style="margin-top: var(--space-3);">
+                <div class="filter-group">
+                  <button type="button" class="filter-button active" data-task-filter="all">Semua</button>
+                  <button type="button" class="filter-button" data-task-filter="approved">Disetujui</button>
+                  <button type="button" class="filter-button" data-task-filter="in-progress">Sedang Dikerjakan</button>
+                  <button type="button" class="filter-button" data-task-filter="completed">Selesai</button>
+                  <button type="button" class="filter-button" data-task-filter="rejected">Ditolak</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- RINGKASAN METRIK STATUS TUGAS -->
+            <div class="metric-grid" id="taskSummary">
+              <div class="empty-state">
+                <span class="empty-state-icon">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="9" y1="9" x2="15" y2="9"/>
+                    <line x1="9" y1="13" x2="15" y2="13"/>
+                    <line x1="9" y1="17" x2="13" y2="17"/>
+                  </svg>
+                </span>
+                <h3 style="font-weight: var(--font-weight-semibold); font-size: 1.1rem; margin-top: 0.5rem;">Ringkasan tugas belum tersedia</h3>
+                <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); max-width: 420px;">
+                  Ringkasan kuantitatif mengenai efisiensi dan persentase penyelesaian tugas operasional akan dimuat secara otomatis setelah data diterima dari sistem backend.
+                </p>
+              </div>
+            </div>
+
+            <!-- DAFTAR UTAMA TUGAS -->
+            <div class="task-list" id="taskList">
+              <div class="empty-state">
+                <span class="empty-state-icon">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10 9 9 9 8 9"/>
+                  </svg>
+                </span>
+                <h3 style="font-weight: var(--font-weight-semibold); font-size: 1.1rem; margin-top: 0.5rem;">Belum ada tugas operasional</h3>
+                <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); max-width: 420px;">
+                  Tugas-tugas operasional yang telah melewati alur validasi persetujuan manajer akan didistribusikan ke sini untuk dipantau proses eksekusinya.
+                </p>
+              </div>
+            </div>
+
+            <!-- INTELIJEN STATUS & ALUR PELAKSANAAN -->
+            <div class="ai-intelligence-panel" id="taskExecutionInfo">
+              <div class="ai-panel-header">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                <span>Alur Pelaksanaan Operasional</span>
+              </div>
+              <p class="ai-panel-content">
+                Setiap item tugas yang telah diotorisasi oleh pihak manajemen akan segera dialokasikan secara dinamis kepada tim staf operasional di lapangan. Progres pengerjaan secara real-time dipantau langsung dalam dasbor StorePilot AI demi menjaga SLA serta kualitas standar toko Anda.
+              </p>
+              <p class="ai-panel-summary">
+                💡 StorePilot AI mempermudah pelacakan digital status tugas secara otomatis, sementara eksekusi fisik dari instruksi kerja tetap dijalankan oleh rekan tim operasional sesuai fungsi dan keahlian masing-masing.
+              </p>
+            </div>
+
+          </div>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- SCRIPTS JS UTAMA -->
+  <script src="../js/utils.js"></script>
+  <script src="../js/components.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/app.js"></script>
+
+  <!-- Catatan: Mobile menu toggle & theme toggle sudah ditangani secara global oleh app.js -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Filter Buttons Active Switcher (Umpan Balik Visual Lokal)
+      const filterButtons = document.querySelectorAll('.filter-button');
+      filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterButtons.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+    });
+  </script>
+</body>
+</html>

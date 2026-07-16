@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="StorePilot AI — Analisis Operasional. Analisis kondisi toko saat ini dan tentukan prioritas operasional.">
+    <title>StorePilot AI — Analisis Operasional</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Script Deteksi Mode Gelap Instan -->
+    <!-- Script Deteksi Mode Gelap Instan (dengan fallback prefers-color-scheme) -->
+    <script>
+        (function () {
+            const saved = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = saved || (prefersDark ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+
+    <!-- CSS Stylesheets (Sesuai dengan struktur folder proyekmu) -->
+    <link rel="stylesheet" href="../assets/css/variables.css">
+    <link rel="stylesheet" href="../assets/css/base.css">
+    <link rel="stylesheet" href="../assets/css/layout.css">
+    <link rel="stylesheet" href="../assets/css/components.css">
+    <link rel="stylesheet" href="../assets/css/pages.css">
+
+    <!-- Gaya Khusus Glassmorphism & Komponen Halaman Analisis -->
+    <style>
+        .analysis-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* 1. Glassmorphism Card Trigger Utama */
+        .analysis-trigger {
+            background: var(--glass-bg-strong, rgba(255, 255, 255, 0.75));
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border, rgba(0, 0, 0, 0.05));
+            border-radius: var(--radius-xl, 16px);
+            padding: 3rem 2rem;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
+            transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+        }
+        
+        .analysis-trigger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.06);
+        }
+
+        .analysis-trigger-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--color-text-primary, #0f172a);
+            margin-bottom: 1rem;
+            line-height: 1.25;
+        }
+
+        .analysis-trigger-description {
+            color: var(--color-text-muted, #64748b);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            max-width: 620px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* 2. Standardisasi Empty State dengan Efek Kaca */
+        .empty-state {
+            background: var(--glass-bg-strong, rgba(255, 255, 255, 0.4));
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1.5px dashed var(--color-border, rgba(0, 0, 0, 0.08));
+            border-radius: var(--radius-lg, 12px);
+            padding: 3rem 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 0.75rem;
+            transition: background-color var(--transition-normal), border-color var(--transition-normal);
+        }
+
+        .empty-state-icon {
+            color: var(--color-text-muted, #64748b);
+            opacity: 0.6;
+            margin-bottom: 0.5rem;
+        }
+
+        /* 3. Panel Hasil Kecerdasan AI */
+        .ai-intelligence-panel {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.03) 0%, rgba(37, 99, 235, 0.07) 100%);
+            border: 1px solid rgba(37, 99, 235, 0.15);
+            border-radius: var(--radius-xl, 16px);
+            padding: 1.5rem;
+            transition: background-color var(--transition-normal), border-color var(--transition-normal);
+        }
+
+        /* --- SINKRONISASI AKTIF UNTUK MODE GELAP (DARK MODE) --- */
+        [data-theme="dark"] .analysis-trigger {
+            background: rgba(30, 41, 59, 0.45);
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        [data-theme="dark"] .empty-state {
+            background: rgba(15, 23, 42, 0.25) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        html[data-theme="dark"] .ai-intelligence-panel,
+        [data-theme="dark"] .ai-intelligence-panel {
+            background: #1e293b !important; 
+            background-image: none !important; 
+            border-color: #334155 !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+        }
+
+        html[data-theme="dark"] .ai-intelligence-panel .empty-state {
+            background: rgba(15, 23, 42, 0.5) !important;
+            border-color: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        /* Perbaikan: jangan paksa semua child jadi satu warna, biarkan hierarki tetap */
+        html[data-theme="dark"] .ai-intelligence-panel .empty-state h4,
+        [data-theme="dark"] .ai-intelligence-panel .empty-state h4 {
+            color: var(--color-text-primary);
+        }
+        html[data-theme="dark"] .ai-intelligence-panel .empty-state p,
+        [data-theme="dark"] .ai-intelligence-panel .empty-state p {
+            color: var(--color-text-secondary);
+        }
+    </style>
+</head>
+<body>
+
+  <div class="app-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-mark">
+          <span style="font-weight: var(--font-weight-bold); color: var(--color-primary); font-size: var(--font-size-base);">SP</span>
+        </div>
+        <div class="brand-content">
+          <span class="brand-name">StorePilot AI</span>
+          <span class="brand-subtitle">Intelijen Operasional</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Navigasi utama">
+        <div class="nav-section">
+          <span class="nav-section-label">OPERASIONAL</span>
+          <ul class="nav-list">
+            <li class="nav-item">
+              <a href="dashboard.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Ringkasan</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="analysis.html" class="nav-link active" aria-current="page">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Analisis Operasional</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="findings.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="16" x2="12" y2="12"/>
+                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Temuan AI</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="approvals.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 11 12 14 22 4"/>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Persetujuan Tugas</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="tasks.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Pemantauan Tugas</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="inventory.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Risiko Inventaris</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="sales.html" class="nav-link">
+                <span class="nav-icon" aria-hidden="true">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                  </svg>
+                </span>
+                <span class="nav-label">Anomali Penjualan</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="sidebar-profile">
+          <div class="profile-avatar" aria-hidden="true">RM</div>
+          <div class="profile-info">
+            <span class="profile-name" id="sidebarProfileName">Rina Marlina</span>
+            <span class="profile-role" id="sidebarProfileRole">Manajer Toko</span>
+          </div>
+        </div>
+        <div class="sidebar-footer-actions" style="width: 100%; display: flex; gap: var(--space-2, 8px); margin-top: var(--space-2);">
+          <button type="button" class="button button-ghost" style="font-size: var(--font-size-xs); flex: 1;">Pengaturan</button>
+          <a href="../index.html" class="button button-ghost" style="font-size: var(--font-size-xs); flex: 1; text-align: center; text-decoration: none;">Keluar</a>
+        </div>
+      </div>
+    </aside>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- MAIN SHELL -->
+    <div class="main-shell">
+      <header class="top-header">
+        <button
+          type="button"
+          class="mobile-menu-button"
+          id="mobileMenuButton"
+          aria-label="Buka navigasi"
+          aria-controls="sidebar"
+          aria-expanded="false"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+
+        <div class="header-context">
+          <h1 class="header-title">Analisis Operasional</h1>
+          <p class="header-description">Analisis kondisi toko saat ini dan tentukan prioritas operasional</p>
+        </div>
+
+        <div class="header-actions">
+          <div class="store-context">
+            <span class="store-context-label">TOKO</span>
+            <span class="store-context-name" style="font-weight: 600; color: var(--color-primary, #2563eb); display: flex; align-items: center; gap: 6px;">
+              <span style="display: inline-block; width: 8px; height: 8px; background: #94a3b8; border-radius: 50%;"></span>
+              Toko Cabang Utama
+            </span>
+          </div>
+
+          <!-- Tombol Tema (Menjaga ID & Struktur Ikon) -->
+          <button
+            type="button"
+            id="theme-toggle"
+            class="header-action-button"
+            aria-label="Ubah Tema"
+            style="font-size: 1.1rem; background: none; border: none; cursor: pointer;"
+          >
+            <span id="theme-icon">🌙</span>
+          </button>
+
+          <!-- Tombol Notifikasi -->
+          <button
+            type="button"
+            class="header-action-button notification-button"
+            aria-label="Notifikasi"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <div class="content-container">
+          <div class="analysis-container">
+
+            <!-- PEMICU ANALISIS (HERO INSIGHT) -->
+            <section class="analysis-trigger" id="analysisTrigger">
+              <div class="analysis-trigger-content">
+                <p style="font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); text-transform: uppercase; letter-spacing: 0.8px; color: var(--color-text-muted); margin-bottom: 0.75rem;">
+                  ANALISIS OPERASIONAL TOKO
+                </p>
+                <h2 class="analysis-trigger-title">Analisis kondisi operasional toko saat ini</h2>
+                <p class="analysis-trigger-description">
+                  StorePilot AI meninjau data operasional secara langsung (*real-time*), mendeteksi risiko tingkat inventaris, mengurai kejanggalan tren penjualan, serta mengajukan tindakan penanganan proaktif.
+                </p>
+                <p style="font-size: var(--font-size-sm); color: var(--color-text-muted); margin-bottom: 2rem;">
+                  💡 <strong>Catatan:</strong> Usulan tugas yang diterbitkan oleh sistem AI wajib divalidasi dan disetujui oleh manajer sebelum dieksekusi oleh staf toko.
+                </p>
+                <div class="analysis-trigger-action">
+                  <button type="button" id="runAnalysisButton" class="button button-primary" style="padding: 0.75rem 2rem; font-weight: 600;">
+                    JALANKAN ANALISIS OPERASIONAL
+                  </button>
+                </div>
+                <div style="margin-top: 1.5rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                  <span style="font-size: var(--font-size-xs); color: var(--color-text-muted);">Status Layanan: Siap melakukan analisis.</span>
+                </div>
+              </div>
+            </section>
+
+            <!-- STATUS PROGRES -->
+            <section class="analysis-progress" id="analysisProgress">
+              <div class="empty-state">
+                <span class="empty-state-icon">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </span>
+                <h3 style="font-weight: var(--font-weight-semibold); font-size: 1.1rem; margin-top: 0.5rem;">Belum ada analisis berjalan</h3>
+                <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); max-width: 400px;">
+                  Sistem dalam status siaga. Progres analisis data operasional akan otomatis muncul di sini setelah Anda memicu tombol di atas.
+                </p>
+              </div>
+            </section>
+
+            <!-- HASIL ANALISIS -->
+            <section class="analysis-result" id="analysisResult">
+              <div class="empty-state" style="margin-bottom: 1.5rem;">
+                <span class="empty-state-icon">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                    <polyline points="10 9 9 9 8 9"/>
+                  </svg>
+                </span>
+                <h3 style="font-weight: var(--font-weight-semibold); font-size: 1.1rem; margin-top: 0.5rem;">Belum ada data visual</h3>
+                <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); max-width: 400px;">
+                  Hasil deteksi anomali penjualan dan peta status stok barang kritis baru akan tersaji setelah proses komputasi backend selesai.
+                </p>
+              </div>
+
+              <!-- RINGKASAN INTELIJEN AI (AI PANEL) -->
+              <div class="ai-intelligence-panel" id="analysisSummary" style="margin-top: 1.5rem;">
+                <div class="empty-state" style="border: none !important; background: transparent !important; padding: 1rem 0 !important;">
+                  <span class="empty-state-icon">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                  </span>
+                  <h4 style="font-weight: var(--font-weight-semibold); margin-top: 0.25rem;">Menunggu Ringkasan AI</h4>
+                  <p style="color: var(--color-text-muted); font-size: var(--font-size-sm);">Peta evaluasi operasional dari asisten digital StorePilot AI akan otomatis digenerasikan di sini.</p>
+                </div>
+              </div>
+
+              <!-- TINDAKAN EVALUASI -->
+              <div class="analysis-result-actions" id="analysisResultActions" style="margin-top: 1.5rem; display: flex; justify-content: center;">
+                <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); text-align: center; width: 100%;">
+                  Pilihan tindakan perbaikan/delegasi tugas akan aktif setelah eksekusi analisis dilakukan.
+                </p>
+              </div>
+            </section>
+
+          </div>
+        </div>
+      </main>
+
+    </div>
+  </div>
+
+  <!-- SCRIPT JS UTAMA -->
+  <script src="../js/utils.js"></script>
+  <script src="../js/components.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/app.js"></script>
+
+  <!-- Catatan: Mobile menu toggle & theme toggle sudah ditangani secara global oleh app.js -->
+</body>
+</html>

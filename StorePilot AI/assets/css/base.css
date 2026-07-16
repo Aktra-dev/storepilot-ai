@@ -1,0 +1,302 @@
+/* ==========================================================================
+   StorePilot AI — Base Styles (Revised)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Reset & Box Sizing
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Document Foundation
+   -------------------------------------------------------------------------- */
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+body {
+  font-family: var(--font-family-primary);
+  background:
+    radial-gradient(circle at top right, rgba(59,130,246,.08), transparent 35%),
+    radial-gradient(circle at bottom left, rgba(16,185,129,.05), transparent 40%),
+    var(--color-bg-primary);
+  background-attachment: fixed;
+  color: var(--color-text-primary);
+  line-height: var(--line-height-normal);
+  font-weight: var(--font-weight-regular);
+  font-size: var(--font-size-base);
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-variant-numeric: tabular-nums;
+
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   Baseline Typography
+   -------------------------------------------------------------------------- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: inherit;
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.012em;
+}
+
+h1 { font-size: clamp(1.75rem, 4vw, 2.25rem); }
+h2 { font-size: clamp(1.375rem, 3vw, 1.75rem); }
+h3 { font-size: clamp(1.125rem, 2.4vw, 1.375rem); }
+h4 { font-size: 1.125rem; }
+h5 { font-size: 1rem; }
+h6 { font-size: 0.875rem; }
+
+p {
+  margin-bottom: 1rem;
+  color: var(--color-text-secondary);
+}
+
+p:last-child {
+  margin-bottom: 0;
+}
+
+strong, b {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+small {
+  font-size: 0.875em;
+}
+
+/* --------------------------------------------------------------------------
+   Links & Interactivity
+   -------------------------------------------------------------------------- */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast), opacity var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Consistent, visible focus ring app-wide (mouse users keep a clean look
+   via :focus-visible; keyboard users always get a clear ring). */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 4px rgba(59,130,246,.15);
+}
+
+/* --------------------------------------------------------------------------
+   Media & Images
+   -------------------------------------------------------------------------- */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+img { object-fit: cover; }
+
+svg {
+  fill: none;
+}
+
+/* --------------------------------------------------------------------------
+   Form Base Reset
+   -------------------------------------------------------------------------- */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+  margin: 0;
+  letter-spacing: inherit;
+}
+
+button {
+  cursor: pointer;
+  background: transparent;
+  border: none;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+textarea {
+  resize: vertical;
+}
+
+/* --------------------------------------------------------------------------
+   Selection & Scrollbar
+   -------------------------------------------------------------------------- */
+::selection {
+  background: rgba(59,130,246,.22);
+  color: var(--color-text-primary);
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-strong);
+  border-radius: 10px;
+  border: 2px solid var(--color-bg-primary);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-text-muted);
+  background-clip: padding-box;
+}
+
+/* --------------------------------------------------------------------------
+   Skip Link (keyboard accessibility — jumps straight to main content)
+   -------------------------------------------------------------------------- */
+.skip-link {
+  position: fixed;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: 999;
+  background: var(--color-primary);
+  color: #fff;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  transform: translateY(-150%);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--transition-fast) var(--ease-premium, ease),
+    opacity var(--transition-fast) var(--ease-premium, ease);
+}
+
+.skip-link:focus,
+.skip-link:focus-visible {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Layout Utility Classes
+   -------------------------------------------------------------------------- */
+.container {
+  width: min(1280px, calc(100% - 2rem));
+  margin-inline: auto;
+}
+
+.section {
+  margin-block: var(--space-8);
+}
+
+.stack > * + * {
+  margin-top: var(--space-4);
+}
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.surface {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+/* --------------------------------------------------------------------------
+   Gentle Page Entrance
+   Applied via a small set of opt-in utility classes so motion stays
+   deliberate rather than scattered. Content settles in, it doesn't jump.
+   -------------------------------------------------------------------------- */
+@keyframes fade-rise-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.fade-in {
+  animation: fade-rise-in .45s ease both;
+}
+
+.slide-up {
+  animation: fade-rise-in .55s ease both;
+}
+
+.scale-in {
+  animation: scale-in .35s ease both;
+}
+
+.enter-fade { animation: fade-rise-in var(--transition-slow) var(--ease-premium) both; }
+.enter-fade-1 { animation: fade-rise-in var(--transition-slow) var(--ease-premium) both; animation-delay: 40ms; }
+.enter-fade-2 { animation: fade-rise-in var(--transition-slow) var(--ease-premium) both; animation-delay: 90ms; }
+.enter-fade-3 { animation: fade-rise-in var(--transition-slow) var(--ease-premium) both; animation-delay: 140ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

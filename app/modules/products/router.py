@@ -69,7 +69,8 @@ def list_products(
     service: ProductService = Depends(get_product_service),
 ):
     """Return paginated list of products."""
-    return service.list(skip=skip, limit=limit)
+    items, total = service.get_list(skip=skip, limit=limit)
+    return items
 
 
 @router.get(

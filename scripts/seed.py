@@ -219,6 +219,25 @@ def main():
             if response.lower() != 'y':
                 print("Seeding cancelled.")
                 return
+            else:
+                print("\nClearing old data...")
+                # Delete in correct order (foreign key dependencies)
+                from app.modules.sales.models import Sale
+                from app.modules.inventory.models import Inventory
+                from app.modules.products.models import Product
+                from app.modules.approvals.models import Approval
+                from app.modules.tasks.models import Task
+                from app.modules.operational_analysis.models import OperationalAnalysis, OperationalFinding
+                db.query(Sale).delete()
+                db.query(Approval).delete()
+                db.query(Task).delete()
+                db.query(OperationalFinding).delete()
+                db.query(OperationalAnalysis).delete()
+                db.query(Inventory).delete()
+                db.query(Product).delete()
+                db.query(User).delete()
+                db.commit()
+                print("  Old data cleared.")
         
         # Seed data
         users = create_users(db)

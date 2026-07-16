@@ -1,0 +1,282 @@
+/* ============================================================
+   StorePilot AI — Design Tokens & Theme Engine
+   Single source of truth. No other stylesheet re-declares :root.
+   ============================================================ */
+
+:root {
+  /* ------------------------------------------------------------
+     1. Brand & Surface Colors (Light Mode Default)
+     ------------------------------------------------------------ */
+  --color-bg-primary: #F3F5F9;
+  --color-bg-secondary: #F7F9FB;
+  --color-surface: #FFFFFF;
+  --color-surface-elevated: rgba(255, 255, 255, 0.86);
+
+  --color-primary: #2563EB;
+  --color-primary-dark: #1D4ED8;
+  --color-primary-darker: #1E3A8A;
+  --color-primary-soft: #EFF6FF;
+  --color-primary-border: #BFDBFE;
+  --color-primary-rgb: 37, 99, 235;
+
+  /* ------------------------------------------------------------
+     2. Text Colors (AA-checked against surface/bg colors)
+     ------------------------------------------------------------ */
+  --color-text-primary: #14192B;
+  --color-text-secondary: #4B5568;
+  --color-text-muted: #6B7280;
+  --color-text-on-primary: #FFFFFF;
+
+  --color-border: rgba(100, 116, 139, 0.20);
+  --color-border-strong: rgba(100, 116, 139, 0.34);
+
+  /* ------------------------------------------------------------
+     3. Operational Status Colors (Light Mode)
+     ------------------------------------------------------------ */
+  --color-critical: #DC2626;
+  --color-critical-dark: #B91C1C;
+  --color-critical-bg: #FEF2F2;
+  --color-critical-border: #FECACA;
+  --color-critical-rgb: 220, 38, 38;
+
+  --color-high: #EA580C;
+  --color-high-dark: #C2410C;
+  --color-high-bg: #FFF7ED;
+  --color-high-border: #FED7AA;
+  --color-high-rgb: 234, 88, 12;
+
+  --color-warning: #B45309;
+  --color-warning-dark: #92400E;
+  --color-warning-bg: #FFFBEB;
+  --color-warning-border: #FDE68A;
+  --color-warning-rgb: 180, 83, 9;
+
+  --color-success: #15803D;
+  --color-success-dark: #166534;
+  --color-success-bg: #F0FDF4;
+  --color-success-border: #BBF7D0;
+  --color-success-rgb: 21, 128, 61;
+
+  /* ------------------------------------------------------------
+     4. Liquid Glass Tokens (Light Mode)
+     ------------------------------------------------------------ */
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-bg-strong: rgba(255, 255, 255, 0.90);
+  --glass-bg-subtle: rgba(255, 255, 255, 0.55);
+
+  --glass-border: rgba(255, 255, 255, 0.55);
+  --glass-border-strong: rgba(255, 255, 255, 0.80);
+
+  --glass-highlight: rgba(255, 255, 255, 0.90);
+
+  --glass-blur: blur(16px);
+  --glass-blur-strong: blur(28px);
+  --glass-saturation: saturate(150%);
+
+  --glass-shadow: 0 4px 20px -4px rgba(20, 25, 43, 0.08), 0 1px 2px rgba(20, 25, 43, 0.04);
+  --glass-shadow-elevated: 0 20px 44px -12px rgba(20, 25, 43, 0.16), 0 2px 8px rgba(20, 25, 43, 0.06);
+
+  /* Ambient backdrop wash */
+  --ambient-wash: radial-gradient(1100px 620px at 12% -8%, rgba(37, 99, 235, 0.10), transparent 60%),
+                  radial-gradient(900px 560px at 92% 8%, rgba(37, 99, 235, 0.06), transparent 55%);
+
+  /* ------------------------------------------------------------
+     5. Typography
+     ------------------------------------------------------------ */
+  --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont,
+    'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.8125rem;  /* 13px */
+  --font-size-base: 0.875rem; /* 14px */
+  --font-size-md: 1rem;       /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.7;
+
+  /* ------------------------------------------------------------
+     6. Spacing
+     ------------------------------------------------------------ */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ------------------------------------------------------------
+     7. Border Radius
+     ------------------------------------------------------------ */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-glass: 20px;
+  --radius-full: 9999px;
+
+  /* ------------------------------------------------------------
+     8. Shadows
+     ------------------------------------------------------------ */
+  --shadow-sm: 0 1px 2px rgba(20, 25, 43, 0.06);
+  --shadow-md: 0 6px 16px -4px rgba(20, 25, 43, 0.10), 0 2px 4px rgba(20, 25, 43, 0.04);
+  --shadow-lg: 0 12px 28px -6px rgba(20, 25, 43, 0.12);
+  --shadow-floating: 0 24px 48px -12px rgba(20, 25, 43, 0.20);
+  --shadow-focus: 0 0 0 3px rgba(var(--color-primary-rgb), 0.28);
+
+  /* ------------------------------------------------------------
+     9. Motion
+     ------------------------------------------------------------ */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 240ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 420ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ------------------------------------------------------------
+     10. Z-Index
+     ------------------------------------------------------------ */
+  --z-background: 0;
+  --z-content: 10;
+  --z-header: 100;
+  --z-sidebar: 200;
+  --z-overlay: 500;
+  --z-modal: 600;
+  --z-toast: 700;
+
+  /* ------------------------------------------------------------
+     11. Compatibility Aliases (Satu deklarasi di dalam :root utama)
+     ------------------------------------------------------------ */
+  --color-background: var(--color-bg-primary);
+  --color-background-secondary: var(--color-bg-secondary);
+  --color-info: #0EA5E9;
+  --color-primary-hover: var(--color-primary-dark);
+
+  --font-family: var(--font-family-primary);
+  --font-weight-normal: var(--font-weight-regular);
+  --font-weight-500: var(--font-weight-medium);
+  --font-weight-600: var(--font-weight-semibold);
+  --text-sm: var(--font-size-sm);
+
+  --glass-background: var(--glass-bg);
+  --glass-ambient-gradient: var(--ambient-wash);
+
+  --radius-small: var(--radius-sm);
+  --radius-medium: var(--radius-md);
+  --radius-large: var(--radius-lg);
+  --radius-pill: var(--radius-full);
+
+  --shadow-small: var(--shadow-sm);
+  --shadow-medium: var(--shadow-md);
+  --shadow-large: var(--shadow-lg);
+
+  --space-1.5: 6px;
+  --space-2.5: 10px;
+  --space-3.5: 14px;
+
+  --z-dropdown: 400;
+  --z-navigation: var(--z-header);
+}
+
+/* ============================================================
+   12. DARK MODE OVERRIDES (Premium Futuristic Dark Tokens)
+   ============================================================ */
+[data-theme="dark"] {
+  /* Surface & Background (Deep Futuristic Space Slates) */
+  --color-bg-primary: #090D1A;
+  --color-bg-secondary: #0F1524;
+  --color-surface: #151D30;
+  --color-surface-elevated: rgba(21, 29, 48, 0.86);
+
+  /* Primary Accent & Brand (Neon Blue Glow) */
+  --color-primary: #3B82F6;
+  --color-primary-dark: #60A5FA;
+  --color-primary-darker: #93C5FD;
+  --color-primary-soft: rgba(59, 130, 246, 0.12);
+  --color-primary-border: rgba(59, 130, 246, 0.35);
+  --color-primary-rgb: 96, 165, 250;
+
+  /* Typography & Text */
+  --color-text-primary: #F8FAFC;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #64748B;
+  --color-text-on-primary: #090D1A;
+
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.15);
+
+  /* Operational Status Colors (Aksesibilitas Kontras Tinggi di Latar Gelap) */
+  --color-critical: #F87171;
+  --color-critical-dark: #EF4444;
+  --color-critical-bg: rgba(239, 68, 68, 0.12);
+  --color-critical-border: rgba(239, 68, 68, 0.25);
+  --color-critical-rgb: 248, 113, 113;
+
+  --color-high: #FB923C;
+  --color-high-dark: #F97316;
+  --color-high-bg: rgba(249, 115, 22, 0.12);
+  --color-high-border: rgba(249, 115, 22, 0.25);
+  --color-high-rgb: 251, 146, 60;
+
+  --color-warning: #FBBF24;
+  --color-warning-dark: #F59E0B;
+  --color-warning-bg: rgba(245, 158, 11, 0.12);
+  --color-warning-border: rgba(245, 158, 11, 0.25);
+  --color-warning-rgb: 251, 191, 36;
+
+  --color-success: #4ADE80;
+  --color-success-dark: #22C55E;
+  --color-success-bg: rgba(34, 197, 94, 0.12);
+  --color-success-border: rgba(34, 197, 94, 0.25);
+  --color-success-rgb: 74, 222, 128;
+
+  /* Liquid Glass (Dark Mode Space Glass) */
+  --glass-bg: rgba(15, 21, 36, 0.70);
+  --glass-bg-strong: rgba(15, 21, 36, 0.88);
+  --glass-bg-subtle: rgba(15, 21, 36, 0.45);
+
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-border-strong: rgba(255, 255, 255, 0.12);
+
+  --glass-highlight: rgba(255, 255, 255, 0.02);
+
+  --glass-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.2);
+  --glass-shadow-elevated: 0 20px 48px -12px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.3);
+
+  /* Dark Neon Cybernetic Backdrop Ambient Gradient */
+  --ambient-wash: radial-gradient(1100px 620px at 12% -8%, rgba(59, 130, 246, 0.14), transparent 55%),
+                  radial-gradient(900px 560px at 92% 8%, rgba(96, 165, 250, 0.08), transparent 50%);
+}
+
+/* ------------------------------------------------------------
+   13. Global Smooth Transitions & Motion Handling
+   ------------------------------------------------------------ */
+body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-primary);
+  transition: background-color var(--transition-normal) var(--ease-premium),
+              color var(--transition-normal) var(--ease-premium),
+              border-color var(--transition-normal) var(--ease-premium);
+}
+
+/* User Reduced Motion Preference */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 1ms linear;
+    --transition-normal: 1ms linear;
+    --transition-slow: 1ms linear;
+  }
+}

@@ -13,6 +13,7 @@ from app.api.health import router as health_router
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.error_handlers import register_exception_handlers
+from app.modules.dashboard.router import router as dashboard_router
 from app.modules.operational_analysis.operations_router import (
     router as operations_router,
 )
@@ -39,4 +40,5 @@ register_exception_handlers(app)
 app.include_router(health_router, prefix="/api")
 app.include_router(operations_router, prefix="/api/operations", tags=["Operations"])
 app.include_router(tasks_router, prefix="/api/tasks", tags=["Tasks"])
+app.include_router(dashboard_router, prefix="/api/dashboard", tags=["Dashboard"])
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)

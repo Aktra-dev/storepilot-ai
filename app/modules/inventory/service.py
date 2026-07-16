@@ -1,26 +1,163 @@
 """
-Inventory Monitoring — business logic.
+Inventory — business logic.
 
-InventoryRiskService is a deterministic rule engine: given plain data
-(stock, recent sales quantities, expiry date), it classifies stockout
-and expiry risk. No AI, no database access, no I/O inside this class —
-that's deliberate, so it stays fast, predictable, and trivially
-unit-testable, and can run safely *before* any data reaches the AI step
-in the pipeline.
+Two services coexist here:
+1. InventoryService  — CRUD + stock management (DB operations)
+2. InventoryRiskService — pure rule engine for stockout/expiry risk (no DB)
 """
 
+import uuid
 from datetime import date
-from typing import Optional, Sequence
+from typing import Optional, List, Sequence
 
+from sqlalchemy.orm import Session
+from sqlalchemy import func
+
+from app.core.exceptions import NotFoundException, ValidationException
+from app.modules.inventory.models import Inventory
 from app.modules.inventory.schemas import (
     ExpiryRiskResult,
+    InventoryCreate,
     InventoryRiskResult,
+    InventoryUpdate,
     RiskLevel,
+    StockAdjustment,
     StockoutRiskResult,
 )
+from app.modules.products.models import Product
 
+
+class InventoryService:
+    """Inventory CRUD and stock management."""
+
+    def __init__(self, db: Session):
+        self.db = db
+
+    # ------------------------------------------------------------------
+    # CRUD
+    # ------------------------------------------------------------------
+
+    def create(self, data: InventoryCreate) -> Inventory:
+        """Add a new inventory/batch record."""
+        # Verify product exists
+        product = self.db.query(Product).filter(Product.id == data.product_id).first()
+        if not product:
+            raise NotFoundException(f"Product {data.product_id} not found")
+
+        inv = Inventory(
+            id=uuid.uuid4(),
+            product_id=data.product_id,
+            quantity=data.quantity,
+            expiry_date=data.expiry_date,
+        )
+        self.db.add(inv)
+        self.db.commit()
+        self.db.refresh(inv)
+        return inv
+
+    def get(self, inventory_id: uuid.UUID) -> Inventory:
+        """Get inventory record by ID."""
+        inv = self.db.query(Inventory).filter(Inventory.id == inventory_id).first()
+        if not inv:
+            raise NotFoundException(f"Inventory record {inventory_id} not found")
+        return inv
+
+    def get_latest_by_product(self, product_id: uuid.UUID) -> Optional[Inventory]:
+        """Get the most recently updated inventory record for a product."""
+        return (
+            self.db.query(Inventory)
+            .filter(Inventory.product_id == product_id)
+            .order_by(Inventory.updated_at.desc())
+            .first()
+        )
+
+    def list_by_product(self, product_id: uuid.UUID) -> List[Inventory]:
+        """List all inventory records for a product (newest first)."""
+        return (
+            self.db.query(Inventory)
+            .filter(Inventory.product_id == product_id)
+            .order_by(Inventory.updated_at.desc())
+            .all()
+        )
+
+    def update(self, inventory_id: uuid.UUID, data: InventoryUpdate) -> Inventory:
+        """Update inventory record."""
+        inv = self.get(inventory_id)
+
+        if data.quantity is not None:
+            inv.quantity = data.quantity
+        if data.expiry_date is not None:
+            inv.expiry_date = data.expiry_date
+
+        self.db.commit()
+        self.db.refresh(inv)
+        return inv
+
+    def delete(self, inventory_id: uuid.UUID) -> None:
+        """Delete inventory record."""
+        inv = self.get(inventory_id)
+        self.db.delete(inv)
+        self.db.commit()
+
+    # ------------------------------------------------------------------
+    # Stock Queries
+    # ------------------------------------------------------------------
+
+    def get_total_stock(self, product_id: uuid.UUID) -> int:
+        """Sum of all inventory quantities for a product."""
+        result = (
+            self.db.query(func.coalesce(func.sum(Inventory.quantity), 0))
+            .filter(Inventory.product_id == product_id)
+            .scalar()
+        )
+        return int(result or 0)
+
+    def get_stock_by_expiry(self, product_id: uuid.UUID) -> List[Inventory]:
+        """Get inventory records for a product, sorted by expiry date (soonest first)."""
+        return (
+            self.db.query(Inventory)
+            .filter(Inventory.product_id == product_id)
+            .order_by(Inventory.expiry_date.asc().nullslast())
+            .all()
+        )
+
+    # ------------------------------------------------------------------
+    # Stock Adjustment
+    # ------------------------------------------------------------------
+
+    def adjust_stock(self, inventory_id: uuid.UUID, adjustment: StockAdjustment) -> Inventory:
+        """
+        Adjust stock by positive or negative amount.
+
+        Raises:
+            ValidationException: If adjustment would result in negative stock.
+        """
+        inv = self.get(inventory_id)
+        new_quantity = inv.quantity + adjustment.quantity_change
+
+        if new_quantity < 0:
+            raise ValidationException(
+                f"Cannot reduce stock below zero. Current: {inv.quantity}, "
+                f"requested change: {adjustment.quantity_change}"
+            )
+
+        inv.quantity = new_quantity
+        self.db.commit()
+        self.db.refresh(inv)
+        return inv
+
+
+# =========================================================================
+# InventoryRiskService (pure rule engine — no DB access, no I/O)
+# =========================================================================
 
 class InventoryRiskService:
+    """
+    Deterministic rule engine for stockout/expiry risk.
+    No AI, no database access — pure computation.
+    Kept here because it describes inventory risk, not DB rows.
+    """
+
     # --- Stockout thresholds, in estimated days remaining ---
     STOCKOUT_CRITICAL_DAYS = 1
     STOCKOUT_HIGH_DAYS = 3
@@ -38,11 +175,7 @@ class InventoryRiskService:
     ) -> StockoutRiskResult:
         """
         estimated_days_remaining = current_stock / average_daily_sales
-
-        Handles: missing stock, invalid (negative) stock, missing/empty
-        sales data, and average_daily_sales == 0 (division by zero).
         """
-        # --- Invalid / missing stock ---
         if current_stock is None:
             return StockoutRiskResult(
                 risk_level=RiskLevel.INVALID_DATA,
@@ -56,7 +189,6 @@ class InventoryRiskService:
                 note="current_stock cannot be negative",
             )
 
-        # --- Missing / empty sales data ---
         if not recent_sales_quantities:
             return StockoutRiskResult(
                 risk_level=RiskLevel.NO_SALES_DATA,
@@ -67,7 +199,6 @@ class InventoryRiskService:
 
         average_daily_sales = sum(recent_sales_quantities) / len(recent_sales_quantities)
 
-        # --- Zero average sales: avoid division by zero ---
         if average_daily_sales == 0:
             return StockoutRiskResult(
                 risk_level=RiskLevel.NO_SALES_DATA,
@@ -101,10 +232,6 @@ class InventoryRiskService:
     ) -> ExpiryRiskResult:
         """
         days_to_expiry = expiry_date - reference_date (default: today)
-
-        Handles missing expiry_date (e.g. non-perishable products).
-        Already-expired products fall through to CRITICAL, since
-        days_to_expiry will be <= 0, which is <= EXPIRY_CRITICAL_DAYS.
         """
         if expiry_date is None:
             return ExpiryRiskResult(
@@ -112,7 +239,8 @@ class InventoryRiskService:
                 note="Product has no expiry date",
             )
 
-        today = reference_date or date.today()
+        from datetime import date as date_cls
+        today = reference_date or date_cls.today()
         days_to_expiry = (expiry_date - today).days
 
         if days_to_expiry <= self.EXPIRY_CRITICAL_DAYS:
@@ -138,7 +266,7 @@ class InventoryRiskService:
         product_id: Optional[str] = None,
         reference_date: Optional[date] = None,
     ) -> InventoryRiskResult:
-        """Convenience method: run both checks and return a combined result."""
+        """Convenience: run both checks and return combined result."""
         return InventoryRiskResult(
             product_id=product_id,
             stockout_risk=self.assess_stockout_risk(current_stock, recent_sales_quantities),

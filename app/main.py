@@ -16,6 +16,7 @@ from app.core.error_handlers import register_exception_handlers
 from app.modules.operational_analysis.operations_router import (
     router as operations_router,
 )
+from app.modules.tasks.router import router as tasks_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -37,4 +38,5 @@ register_exception_handlers(app)
 # --- Routers ---
 app.include_router(health_router, prefix="/api")
 app.include_router(operations_router, prefix="/api/operations", tags=["Operations"])
+app.include_router(tasks_router, prefix="/api/tasks", tags=["Tasks"])
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)

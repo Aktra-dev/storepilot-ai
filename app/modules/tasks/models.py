@@ -33,8 +33,10 @@ class TaskPriority(str, enum.Enum):
 class TaskStatus(str, enum.Enum):
     PENDING_APPROVAL = "pending_approval"  # renamed in Step 7: task always
     # waits for manager approval before it can move to IN_PROGRESS
+    APPROVED = "approved"  # added in Step 8
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
+    REJECTED = "rejected"  # added in Step 8
     CANCELLED = "cancelled"
 
 

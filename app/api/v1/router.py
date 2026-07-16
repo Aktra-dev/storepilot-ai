@@ -15,7 +15,6 @@ from app.modules.inventory.router import router as inventory_router
 from app.modules.operational_analysis.router import router as operational_analysis_router
 from app.modules.products.router import router as products_router
 from app.modules.sales.router import router as sales_router
-from app.modules.tasks.router import router as tasks_router
 
 api_router = APIRouter()
 
@@ -27,5 +26,4 @@ api_router.include_router(
     operational_analysis_router, prefix="/analysis", tags=["Operational Analysis"]
 )
 api_router.include_router(ai_engine_router, prefix="/ai", tags=["AI Engine"])
-api_router.include_router(tasks_router, prefix="/tasks", tags=["Tasks"])
 api_router.include_router(approvals_router, prefix="/approvals", tags=["Approvals"])

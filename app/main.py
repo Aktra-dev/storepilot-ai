@@ -25,9 +25,18 @@ app = FastAPI(
 )
 
 # --- Middleware ---
+# allow_origins: exact matches from the CORS_ORIGINS env var (e.g. your
+# fixed production frontend URL). Keep using this for stable domains.
+#
+# allow_origin_regex: ALSO accept any Vercel preview URL for this
+# project (storepilot-ai-xxxxxxxx-yyyyyyyy.vercel.app). Vercel gives
+# every push/branch its own random preview URL, so hard-coding each one
+# into CORS_ORIGINS is unsustainable -- this regex covers all of them
+# automatically without needing a redeploy every time.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in settings.CORS_ORIGINS.split(",")],
+    allow_origin_regex=r"^https://storepilot-ai(-[a-zA-Z0-9]+)*\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

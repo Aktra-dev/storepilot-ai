@@ -264,11 +264,13 @@ class InventoryRiskService:
         recent_sales_quantities: Optional[Sequence[int]],
         expiry_date: Optional[date],
         product_id: Optional[str] = None,
+        product_name: Optional[str] = None,
         reference_date: Optional[date] = None,
     ) -> InventoryRiskResult:
         """Convenience: run both checks and return combined result."""
         return InventoryRiskResult(
             product_id=product_id,
+            product_name=product_name,
             stockout_risk=self.assess_stockout_risk(current_stock, recent_sales_quantities),
             expiry_risk=self.assess_expiry_risk(expiry_date, reference_date),
         )

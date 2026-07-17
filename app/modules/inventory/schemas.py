@@ -117,5 +117,6 @@ class InventoryRiskResult(BaseModel):
     """Combined result for one product — stockout risk + expiry risk."""
 
     product_id: Optional[str] = None
+    product_name: Optional[str] = None
     stockout_risk: StockoutRiskResult
     expiry_risk: ExpiryRiskResult

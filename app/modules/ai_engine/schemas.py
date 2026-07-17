@@ -92,4 +92,5 @@ class ProductSalesAnomaly(BaseModel):
     """Associates a SalesAnomalyResult (Step 5) with the product it's for."""
 
     product_id: str
+    product_name: Optional[str] = None
     result: SalesAnomalyResult

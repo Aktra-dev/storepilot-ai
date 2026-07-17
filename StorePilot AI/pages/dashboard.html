@@ -476,7 +476,7 @@
         }
 
         // 4. Fetch Pending Approvals (Tasks with PENDING_APPROVAL status)
-        const tasks = await API.getTasks('PENDING_APPROVAL');
+        const tasks = await API.getTasks('pending_approval');
         const actionList = document.getElementById('proposedActionList');
         if (actionList && tasks && Array.isArray(tasks) && tasks.length > 0) {
           actionList.innerHTML = tasks.slice(0, 3).map(t => `

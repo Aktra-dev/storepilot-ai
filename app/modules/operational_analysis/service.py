@@ -132,6 +132,7 @@ class OperationalWorkflowService:
                     recent_sales_quantities=recent_quantities,
                     expiry_date=expiry_date,
                     product_id=str(product.id),
+                    product_name=product.name,
                     reference_date=self.reference_date,
                 )
             )
@@ -141,7 +142,11 @@ class OperationalWorkflowService:
                 historical_sales=historical_quantities,
             )
             sales_anomalies.append(
-                ProductSalesAnomaly(product_id=str(product.id), result=sales_result)
+                ProductSalesAnomaly(
+                    product_id=str(product.id),
+                    product_name=product.name,
+                    result=sales_result,
+                )
             )
 
         return inventory_risks, sales_anomalies

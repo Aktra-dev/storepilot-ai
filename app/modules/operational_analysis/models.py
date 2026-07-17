@@ -12,9 +12,8 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import DateTime, Float, ForeignKey, String, Text, func
+from sqlalchemy import DateTime, Float, ForeignKey, String, Text, func, Uuid
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -49,7 +48,7 @@ class OperationalAnalysis(Base):
     __tablename__ = "operational_analyses"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     status: Mapped[AnalysisStatus] = mapped_column(
         SAEnum(AnalysisStatus, name="analysis_status_enum"),
@@ -69,16 +68,16 @@ class OperationalFinding(Base):
     __tablename__ = "operational_findings"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        Uuid(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     analysis_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("operational_analyses.id"), nullable=False
+        Uuid(as_uuid=True), ForeignKey("operational_analyses.id"), nullable=False
     )
     finding_type: Mapped[FindingType] = mapped_column(
         SAEnum(FindingType, name="finding_type_enum"), nullable=False
     )
     product_id: Mapped[Optional[uuid.UUID]] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("products.id"), nullable=True
+        Uuid(as_uuid=True), ForeignKey("products.id"), nullable=True
     )
     severity: Mapped[Severity] = mapped_column(
         SAEnum(Severity, name="severity_enum"), nullable=False

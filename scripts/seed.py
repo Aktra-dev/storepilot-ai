@@ -33,6 +33,12 @@ from app.modules.auth.models import User, UserRole
 from app.modules.products.models import Product
 from app.modules.inventory.models import Inventory
 from app.modules.sales.models import Sale
+from app.modules.operational_analysis.models import (
+    OperationalAnalysis, OperationalFinding,
+    AnalysisStatus, FindingType, Severity
+)
+from app.modules.tasks.models import Task, TaskStatus, TaskPriority
+from app.modules.approvals.models import Approval, ApprovalStatus
 from app.core.security import hash_password
 
 # Sample data
@@ -200,6 +206,151 @@ def create_sales(db, products, days=30):
     return sales
 
 
+def create_analysis_results(db, products, inventories):
+    """Create sample OperationalAnalysis, Findings, Tasks, and Approvals."""
+    print("Creating analysis results (findings, tasks, approvals)...")
+    
+    # Create an analysis record
+    analysis = OperationalAnalysis(
+        id=uuid.uuid4(),
+        status=AnalysisStatus.COMPLETED,
+        summary="Analisis operasional otomatis - seed data",
+        ai_provider="rule-based-fallback",
+    )
+    db.add(analysis)
+    db.commit()
+    
+    findings = []
+    tasks = []
+    
+    # Get manager ID first (for approval foreign key)
+    manager = db.query(User).filter(User.role == UserRole.MANAGER).first()
+    if not manager:
+        print("  ⚠️  No manager found, skipping tasks & approvals")
+        return analysis, [], []
+    
+    # 1. Create stockout findings from low inventory
+    for inv in inventories:
+        product = next((p for p in products if p.id == inv.product_id), None)
+        if not product:
+            continue
+        
+        total_stock = sum(i.quantity for i in inventories if i.product_id == product.id)
+        
+        # Stockout risk - low stock
+        if total_stock <= product.minimum_stock:
+            severity = Severity.CRITICAL if total_stock == 0 else Severity.HIGH
+            finding = OperationalFinding(
+                id=uuid.uuid4(),
+                analysis_id=analysis.id,
+                finding_type=FindingType.STOCKOUT,
+                product_id=product.id,
+                severity=severity,
+                title=f"Stok Rendah: {product.name}",
+                description=f"Stok total ({total_stock}) di bawah minimum ({product.minimum_stock}). Perlu restock segera.",
+                confidence=0.95,
+            )
+            db.add(finding)
+            findings.append(finding)
+            
+            # Create task for critical/high stockout
+            if severity in [Severity.CRITICAL, Severity.HIGH]:
+                task = Task(
+                    id=uuid.uuid4(),
+                    finding_id=finding.id,
+                    title=f"Buat PO Darurat: {product.name}",
+                    description=f"Stok {product.name} kritis ({total_stock}/{product.minimum_stock}). Otomatis membuat Purchase Order ke distributor.",
+                    priority=TaskPriority.HIGH if severity == Severity.HIGH else TaskPriority.CRITICAL,
+                    assigned_role="purchasing",
+                    status=TaskStatus.PENDING_APPROVAL,
+                )
+                db.add(task)
+                tasks.append(task)
+                
+                # Create approval for task (manager_id langsung pakai manager.id)
+                approval = Approval(
+                    id=uuid.uuid4(),
+                    task_id=task.id,
+                    manager_id=manager.id,
+                    status=ApprovalStatus.PENDING,
+                    note="Menunggu persetujuan manajer",
+                )
+                db.add(approval)
+    
+    # 2. Create expiry findings
+    for inv in inventories:
+        if inv.expiry_date:
+            days_left = (inv.expiry_date - date.today()).days
+            if days_left <= 7:
+                product = next((p for p in products if p.id == inv.product_id), None)
+                if not product:
+                    continue
+                severity = Severity.CRITICAL if days_left <= 0 else (Severity.HIGH if days_left <= 3 else Severity.MEDIUM)
+                finding = OperationalFinding(
+                    id=uuid.uuid4(),
+                    analysis_id=analysis.id,
+                    finding_type=FindingType.EXPIRY,
+                    product_id=product.id,
+                    severity=severity,
+                    title=f"Mendekati Expired: {product.name}",
+                    description=f"Batch akan expired dalam {days_left} hari ({inv.expiry_date}). Disarankan promosi/diskon.",
+                    confidence=0.9,
+                )
+                db.add(finding)
+                findings.append(finding)
+                
+                if severity in [Severity.CRITICAL, Severity.HIGH]:
+                    task = Task(
+                        id=uuid.uuid4(),
+                        finding_id=finding.id,
+                        title=f"Aktifkan Promosi: {product.name}",
+                        description=f"Produk {product.name} expired {inv.expiry_date}. Buat program diskon 30% untuk clearance.",
+                        priority=TaskPriority.HIGH,
+                        assigned_role="store_staff",
+                        status=TaskStatus.PENDING_APPROVAL,
+                    )
+                    db.add(task)
+                    tasks.append(task)
+    
+    # 3. Create sales anomaly findings (mock based on sales data)
+    # Pick a few random products for sales anomalies
+    random.seed(42)  # deterministic
+    anomaly_products = random.sample(products, min(3, len(products)))
+    
+    for product in anomaly_products:
+        finding = OperationalFinding(
+            id=uuid.uuid4(),
+            analysis_id=analysis.id,
+            finding_type=FindingType.SALES_ANOMALY,
+            product_id=product.id,
+            severity=random.choice([Severity.HIGH, Severity.MEDIUM, Severity.LOW]),
+            title=f"Anomali Penjualan: {product.name}",
+            description=f"Penjualan {product.name} menurun 40% dari rata-rata mingguan. Perlu investigasi display/stock.",
+            confidence=0.75,
+        )
+        db.add(finding)
+        findings.append(finding)
+    
+    # 4. Create one general operational finding
+    finding = OperationalFinding(
+        id=uuid.uuid4(),
+        analysis_id=analysis.id,
+        finding_type=FindingType.OPERATIONAL,
+        product_id=None,
+        severity=Severity.MEDIUM,
+        title="Optimasi Layout Lorong 3",
+        description="Lonjakan pembelian sembako terdeteksi. Disarankan penataan ulang lorong 3 dan tambah 1 kasir dari gudang.",
+        confidence=0.85,
+    )
+    db.add(finding)
+    findings.append(finding)
+    
+    db.commit()
+    
+    print(f"  Created: 1 analysis, {len(findings)} findings, {len(tasks)} tasks, {len(tasks)} approvals")
+    return analysis, findings, tasks
+
+
 def main():
     print("=" * 50)
     print("Seeding StorePilot AI Database")
@@ -244,6 +395,9 @@ def main():
         products = create_products(db)
         inventories = create_inventory(db, products)
         sales = create_sales(db, products, days=30)
+        
+        # Create analysis results (findings, tasks, approvals)
+        create_analysis_results(db, products, inventories)
         
         print("\n" + "=" * 50)
         print("✅ Seeding complete!")

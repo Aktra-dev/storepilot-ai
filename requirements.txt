@@ -17,3 +17,6 @@ alembic==1.13.2
 # Testing
 pytest==8.3.3
 httpx==0.27.2
+
+# AI provider
+anthropic==0.39.0

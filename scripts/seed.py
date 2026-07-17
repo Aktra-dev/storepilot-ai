@@ -72,27 +72,28 @@ def create_users(db):
     )
     db.add(manager)
     
-    # Staff
+    # Store Staff (sales + inventory)
     staff1 = User(
         id=uuid.uuid4(),
         name="Siti Staff",
         email="staff1@storepilot.ai",
         password_hash=hash_password("Staff123!"),
-        role=UserRole.STAFF,
+        role=UserRole.STORE_STAFF,
     )
     db.add(staff1)
-    
+
+    # Inventory Staff (stock + task monitoring only)
     staff2 = User(
         id=uuid.uuid4(),
         name="Andi Staff",
         email="staff2@storepilot.ai",
         password_hash=hash_password("Staff123!"),
-        role=UserRole.STAFF,
+        role=UserRole.INVENTORY_STAFF,
     )
     db.add(staff2)
-    
+
     db.commit()
-    print(f"  Created: 1 manager, 2 staff")
+    print(f"  Created: 1 manager, 1 store staff, 1 inventory staff")
     return [manager, staff1, staff2]
 
 

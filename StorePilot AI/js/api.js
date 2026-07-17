@@ -8,8 +8,19 @@
     // ==================================================
     // PRIVATE CONFIGURATION
     // ==================================================
+    // Auto-detect backend URL based on environment
+    var __API_BASE__ = window.__API_BASE__;
+    if (!__API_BASE__) {
+        var isLocal = window.location.hostname === 'localhost' ||
+                      window.location.hostname === '127.0.0.1' ||
+                      window.location.hostname === '[::1]';
+        __API_BASE__ = isLocal
+            ? 'http://localhost:8000'
+            : 'https://storepilot-api.up.railway.app';  // GANTI dengan URL Railway asli
+    }
+
     const config = {
-        baseUrl: "http://localhost:8000",
+        baseUrl: __API_BASE__,
         timeout: 15000
     };
 
@@ -554,17 +565,17 @@
         return request(`/api/tasks/${id}`);
     }
 
-    function approveTask(taskId, managerId, note) {
+    function approveTask(taskId, note) {
         return request(`/api/tasks/${taskId}/approve`, {
             method: "POST",
-            body: { manager_id: managerId, note }
+            body: { note }
         });
     }
 
-    function rejectTask(taskId, managerId, note) {
+    function rejectTask(taskId, note) {
         return request(`/api/tasks/${taskId}/reject`, {
             method: "POST",
-            body: { manager_id: managerId, note }
+            body: { note }
         });
     }
 

@@ -86,6 +86,22 @@ async def get_current_manager(
     return current_user
 
 
+async def get_current_store_staff_or_manager(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """
+    Sales is only in the Manager and Store Staff menus — Inventory Staff
+    only manages stock and task monitoring, never sales (per spec).
+    """
+    from app.modules.auth.models import UserRole
+
+    if current_user.role not in (UserRole.MANAGER, UserRole.STORE_STAFF):
+        raise UnauthorizedException(
+            "Requires manager or store staff role"
+        )
+    return current_user
+
+
 def require_role(required_role: str):
     """
     Create a dependency that requires a specific role.
@@ -96,7 +112,7 @@ def require_role(required_role: str):
             return {"message": "Admin only"}
 
     Args:
-        required_role: Required role value ("manager", "staff")
+        required_role: Required role value ("manager", "store_staff", "inventory_staff")
 
     Returns:
         FastAPI dependency function
@@ -107,8 +123,11 @@ def require_role(required_role: str):
         from app.core.exceptions import ForbiddenException
         from app.modules.auth.models import UserRole
 
+        # Staff roles are equal-level (both below manager); only MANAGER
+        # sits above them in the hierarchy.
         role_hierarchy = {
-            UserRole.STAFF: 1,
+            UserRole.STORE_STAFF: 1,
+            UserRole.INVENTORY_STAFF: 1,
             UserRole.MANAGER: 2,
         }
 

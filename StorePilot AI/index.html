@@ -317,8 +317,8 @@
                     // Call backend login endpoint
                     const response = await API.login(email, password);
                     
-                    // Simpan tokens
-                    API.setTokens(response.access_token, response.refresh_token);
+                    // Simpan tokens (ada di response.tokens, bukan top-level)
+                    API.setTokens(response.tokens.access_token, response.tokens.refresh_token);
                     
                     // Simpan user info
                     if (response.user) {
@@ -328,8 +328,11 @@
                     status.textContent = "Login berhasil! Mengarahkan...";
                     status.style.color = "var(--color-success-dark)";
                     
-                    // Redirect to dashboard
-                    window.location.href = "pages/dashboard.html";
+                    // Redirect sesuai role: manager -> dashboard, staff -> inventaris
+                    const landingPage = (response.user && response.user.role === "manager")
+                        ? "pages/dashboard.html"
+                        : "pages/inventory.html";
+                    window.location.href = landingPage;
                 
                 } catch (error) {
                     status.classList.add("is-visible");

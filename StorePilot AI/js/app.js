@@ -478,6 +478,62 @@
     }
 
     // ==================================================
+    // ROLE-BASED MENU & PAGE ACCESS
+    // ==================================================
+    // Menu per role (sesuai dokumen spek):
+    //   Manager        -> Dashboard, Analisis, Temuan AI, Persetujuan, Tugas, Inventaris, Penjualan
+    //   Store Staff    -> Inventaris, Penjualan, Tugas
+    //   Inventory Staff-> Inventaris, Tugas
+    const PAGE_ROLE_ACCESS = {
+        dashboard: ["manager"],
+        analysis: ["manager"],
+        findings: ["manager"],
+        approvals: ["manager"],
+        tasks: ["manager", "store_staff", "inventory_staff"],
+        inventory: ["manager", "store_staff", "inventory_staff"],
+        sales: ["manager", "store_staff"]
+    };
+
+    function getCurrentUserRole() {
+        try {
+            const user = JSON.parse(localStorage.getItem("user") || "{}");
+            return user.role || null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /**
+     * Hides sidebar links the current role can't access, and redirects away
+     * from the current page if the role isn't allowed to be here at all
+     * (e.g. inventory_staff hitting sales.html directly via URL).
+     */
+    function applyRoleBasedAccess() {
+        const page = getCurrentPage();
+        if (page === "login" || page === "unknown") return;
+
+        const role = getCurrentUserRole();
+        if (!role) return; // not logged in yet; page-level auth guard handles this
+
+        Utils.selectAll(".sidebar-nav .nav-link").forEach(link => {
+            const href = link.getAttribute("href") || "";
+            const targetPage = Object.keys(PAGE_ROLE_ACCESS).find(p => href.indexOf(`${p}.html`) !== -1);
+            if (!targetPage) return;
+
+            const allowedRoles = PAGE_ROLE_ACCESS[targetPage];
+            const listItem = link.closest(".nav-item");
+            if (listItem && !allowedRoles.includes(role)) {
+                listItem.style.display = "none";
+            }
+        });
+
+        const allowedForCurrentPage = PAGE_ROLE_ACCESS[page];
+        if (allowedForCurrentPage && !allowedForCurrentPage.includes(role)) {
+            window.location.href = role === "manager" ? "dashboard.html" : "inventory.html";
+        }
+    }
+
+    // ==================================================
     // APPLICATION INITIALIZATION
     // ==================================================
     /**
@@ -486,6 +542,7 @@
     function initializeApp() {
         initializeThemeController(); // <--- *BARU: Menjalankan sistem tema di semua halaman*
         initializeMobileNavigation();
+        applyRoleBasedAccess();
         initializeCurrentPage();
     }
 
@@ -521,6 +578,8 @@
         setCurrentPageState,
         requestActionConfirmation,
         applySalesComparisonWidths,
+        getCurrentUserRole,
+        applyRoleBasedAccess,
         initializeDashboardPage,
         initializeAnalysisPage,
         initializeFindingsPage,

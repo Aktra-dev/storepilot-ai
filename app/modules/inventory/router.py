@@ -47,10 +47,10 @@ def get_inventory_service(db: Session = Depends(get_db)) -> InventoryService:
 )
 def create_inventory(
     payload: InventoryCreate,
-    current_user: User = Depends(get_current_manager),
+    current_user: User = Depends(get_current_active_user),
     service: InventoryService = Depends(get_inventory_service),
 ):
-    """Create a new inventory record for a product. Requires manager role."""
+    """Create a new inventory record for a product. Staff or manager (real-time data entry)."""
     return service.create(payload)
 
 
@@ -136,12 +136,12 @@ def update_inventory(
 def adjust_stock(
     inventory_id: UUID,
     payload: StockAdjustment,
-    current_user: User = Depends(get_current_manager),
+    current_user: User = Depends(get_current_active_user),
     service: InventoryService = Depends(get_inventory_service),
 ):
     """
     Adjust stock by positive (restock) or negative (sell/remove) amount.
-    Prevents negative stock. Requires manager role.
+    Prevents negative stock. Staff or manager (real-time data entry).
     """
     return service.adjust_stock(inventory_id, payload)
 

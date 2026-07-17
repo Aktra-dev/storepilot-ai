@@ -75,7 +75,6 @@ def register(
         name=payload.name,
         email=payload.email,
         password=payload.password,
-        role=payload.role,
     )
 
 

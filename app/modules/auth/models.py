@@ -20,7 +20,8 @@ if TYPE_CHECKING:
 
 class UserRole(str, enum.Enum):
     MANAGER = "manager"
-    STAFF = "staff"
+    STORE_STAFF = "store_staff"
+    INVENTORY_STAFF = "inventory_staff"
 
 
 class User(Base):
@@ -33,7 +34,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[UserRole] = mapped_column(
-        SAEnum(UserRole, name="user_role_enum"), nullable=False, default=UserRole.STAFF
+        SAEnum(UserRole, name="user_role_enum"), nullable=False, default=UserRole.STORE_STAFF
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

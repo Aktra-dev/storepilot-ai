@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     # --- AI Provider (placeholder for future implementation) ---
     AI_PROVIDER: str = "fallback"
     AI_API_KEY: str = ""
+    AI_MODEL: str = "claude-sonnet-4-5-20250929"
 
     # --- CORS ---
     CORS_ORIGINS: str = "*"

@@ -18,7 +18,7 @@ from fastapi import APIRouter, Depends, Query, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from app.core.auth import get_current_active_user, get_current_manager
+from app.core.auth import get_current_manager, get_current_store_staff_or_manager
 from app.core.database import get_db
 from app.modules.auth.models import User
 from app.modules.sales.schemas import SaleCreate, SaleResponse, SaleUpdate
@@ -39,7 +39,7 @@ def get_sales_service(db: Session = Depends(get_db)) -> SalesService:
 )
 def create_sale(
     payload: SaleCreate,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_store_staff_or_manager),
     service: SalesService = Depends(get_sales_service),
 ):
     """Record a new sale transaction."""
@@ -57,7 +57,7 @@ def list_sales(
     end_date: Optional[str] = Query(default=None, description="End date (YYYY-MM-DD)"),
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=50, ge=1, le=1000),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_store_staff_or_manager),
     service: SalesService = Depends(get_sales_service),
 ):
     """List sales with optional filters."""
@@ -75,7 +75,7 @@ def get_sales_summary(
     product_id: Optional[UUID] = Query(default=None),
     start_date: Optional[str] = Query(default=None),
     end_date: Optional[str] = Query(default=None),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_store_staff_or_manager),
     service: SalesService = Depends(get_sales_service),
 ):
     """Get total revenue, count, average per day, and top products."""
@@ -94,7 +94,7 @@ def get_daily_sales(
     start_date: Optional[str] = Query(default=None),
     end_date: Optional[str] = Query(default=None),
     limit: int = Query(default=30, ge=1, le=365),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_store_staff_or_manager),
     service: SalesService = Depends(get_sales_service),
 ):
     """Get daily sales totals for charting."""
@@ -111,7 +111,7 @@ def get_daily_sales(
 )
 def get_sale(
     sale_id: UUID,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(get_current_store_staff_or_manager),
     service: SalesService = Depends(get_sales_service),
 ):
     """Get a single sale record by ID."""

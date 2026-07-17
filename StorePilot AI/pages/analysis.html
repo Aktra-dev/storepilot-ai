@@ -430,7 +430,8 @@
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (user.name) {
         document.getElementById('sidebarProfileName').textContent = user.name;
-        document.getElementById('sidebarProfileRole').textContent = user.role || 'Staff';
+        const roleLabels = {manager: 'Manajer Toko', store_staff: 'Staff Toko', inventory_staff: 'Staff Inventaris'};
+        document.getElementById('sidebarProfileRole').textContent = roleLabels[user.role] || (user.role || 'Staff');
       }
 
       // Logout
@@ -464,6 +465,14 @@
       const progressEl = document.getElementById('analysisProgress');
       const resultEl = document.getElementById('analysisResult');
       const summaryEl = document.getElementById('analysisSummary');
+
+      // Menjalankan AI autonomous analysis khusus untuk manager.
+      // Staff tetap bisa lihat hasil analisis, tapi tombol run dinonaktifkan.
+      if (runBtn && user.role !== 'manager') {
+        runBtn.disabled = true;
+        runBtn.title = 'Hanya manager yang bisa menjalankan analisis AI';
+        runBtn.textContent = 'Khusus Manager';
+      }
 
       if (runBtn) {
         runBtn.addEventListener('click', async () => {

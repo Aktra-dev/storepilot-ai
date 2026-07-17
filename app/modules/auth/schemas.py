@@ -24,7 +24,9 @@ class RegisterRequest(BaseModel):
     password: str = Field(
         ..., min_length=8, max_length=128, description="Password"
     )
-    role: UserRole = Field(default=UserRole.STAFF, description="User role")
+    # NOTE: role is intentionally NOT accepted from the client here.
+    # New accounts are always created as STAFF (see AuthService.register).
+    # Roles are only elevated via PATCH /auth/users/{id}/role (manager-only).
 
 class LoginRequest(BaseModel):
     """Authenticate and receive tokens."""

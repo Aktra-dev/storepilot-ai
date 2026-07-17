@@ -300,3 +300,36 @@ MAX_PASSWORD_LENGTH = 128
 REQUIRE_PASSWORD_COMPLEXITY = True
 RATE_LIMIT_WINDOW = 300  # 5 minutes
 RATE_LIMIT_MAX_ATTEMPTS = 5  # Max login attempts per window
+
+# ---------------------------------------------------------------------------
+# Login rate limiting
+# ---------------------------------------------------------------------------
+# In-memory attempt tracker keyed by email (lowercased).
+# Production with multiple instances: move to Redis (INCR + EXPIRE).
+_login_attempts: dict[str, list[float]] = {}
+
+
+def _prune_attempts(key: str) -> list[float]:
+    now = time.time()
+    attempts = [t for t in _login_attempts.get(key, []) if now - t < RATE_LIMIT_WINDOW]
+    _login_attempts[key] = attempts
+    return attempts
+
+
+def is_rate_limited(email: str) -> bool:
+    """Return True if this email has hit the max failed login attempts."""
+    key = email.strip().lower()
+    return len(_prune_attempts(key)) >= RATE_LIMIT_MAX_ATTEMPTS
+
+
+def record_failed_login(email: str) -> None:
+    """Record a failed login attempt for this email."""
+    key = email.strip().lower()
+    _prune_attempts(key)
+    _login_attempts.setdefault(key, []).append(time.time())
+
+
+def clear_failed_logins(email: str) -> None:
+    """Clear failed-attempt history after a successful login."""
+    key = email.strip().lower()
+    _login_attempts.pop(key, None)

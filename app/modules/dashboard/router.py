@@ -11,7 +11,9 @@ from typing import List
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.core.auth import get_current_manager
 from app.core.database import get_db
+from app.modules.auth.models import User
 from app.modules.dashboard.schemas import DashboardSummary, FindingSummary
 from app.modules.dashboard.service import (
     DEFAULT_RECENT_FINDINGS_LIMIT,
@@ -26,23 +28,33 @@ def get_dashboard_service(db: Session = Depends(get_db)) -> DashboardService:
 
 
 @router.get("", response_model=DashboardSummary)
-def get_dashboard(service: DashboardService = Depends(get_dashboard_service)):
+def get_dashboard(
+    current_user: User = Depends(get_current_manager),
+    service: DashboardService = Depends(get_dashboard_service),
+):
     return service.get_summary()
 
 
 @router.get("/inventory-risks", response_model=List[FindingSummary])
-def get_inventory_risks(service: DashboardService = Depends(get_dashboard_service)):
+def get_inventory_risks(
+    current_user: User = Depends(get_current_manager),
+    service: DashboardService = Depends(get_dashboard_service),
+):
     return service.get_inventory_risks()
 
 
 @router.get("/sales-anomalies", response_model=List[FindingSummary])
-def get_sales_anomalies(service: DashboardService = Depends(get_dashboard_service)):
+def get_sales_anomalies(
+    current_user: User = Depends(get_current_manager),
+    service: DashboardService = Depends(get_dashboard_service),
+):
     return service.get_sales_anomalies()
 
 
 @router.get("/recent-findings", response_model=List[FindingSummary])
 def get_recent_findings(
     limit: int = Query(default=DEFAULT_RECENT_FINDINGS_LIMIT, ge=1, le=100),
+    current_user: User = Depends(get_current_manager),
     service: DashboardService = Depends(get_dashboard_service),
 ):
     return service.get_recent_findings(limit=limit)

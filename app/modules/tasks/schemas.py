@@ -26,10 +26,11 @@ class TaskResponse(BaseModel):
 
 
 class ApproveTaskRequest(BaseModel):
-    manager_id: UUID
+    # manager_id is intentionally NOT accepted from the client — it comes
+    # from the authenticated JWT (see tasks/router.py) so a caller can't
+    # forge approvals under another manager's identity.
     note: Optional[str] = None
 
 
 class RejectTaskRequest(BaseModel):
-    manager_id: UUID
     note: Optional[str] = None

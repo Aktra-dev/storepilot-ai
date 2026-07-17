@@ -35,6 +35,9 @@ from app.core.security import (
     validate_password_strength,
     generate_password_reset_token,
     verify_password_reset_token,
+    is_rate_limited,
+    record_failed_login,
+    clear_failed_logins,
     AuthenticationError,
     PasswordValidationError,
 )
@@ -56,11 +59,15 @@ class AuthService:
     # Register
     # ------------------------------------------------------------------
 
-    def register(
-        self, name: str, email: str, password: str, role: UserRole = UserRole.STAFF
-    ) -> dict:
+    def register(self, name: str, email: str, password: str, role=None) -> dict:
         """
         Register a new user account.
+
+        SECURITY: role is always forced to STORE_STAFF here (least-privilege
+        default). Any `role` passed in (e.g. from the request body) is
+        ignored — self-registering as MANAGER would be a
+        privilege-escalation bug. Roles can only be changed afterwards via
+        PATCH /auth/users/{id}/role (manager only).
 
         Returns user data + tokens on success.
         Raises ValidationException if email already exists or password is weak.
@@ -82,7 +89,7 @@ class AuthService:
             name=name,
             email=email,
             password_hash=hashed,
-            role=role,
+            role=UserRole.STORE_STAFF,
         )
         self.db.add(user)
         self.db.commit()
@@ -103,13 +110,21 @@ class AuthService:
         Returns user data + tokens on success.
         Raises UnauthorizedException on invalid credentials.
         """
+        if is_rate_limited(email):
+            raise UnauthorizedException(
+                "Terlalu banyak percobaan login gagal. Coba lagi dalam beberapa menit."
+            )
+
         user = self.db.query(User).filter(User.email == email).first()
         if not user:
+            record_failed_login(email)
             raise UnauthorizedException("Invalid email or password")
 
         if not verify_password(password, user.password_hash):
+            record_failed_login(email)
             raise UnauthorizedException("Invalid email or password")
 
+        clear_failed_logins(email)
         tokens = self._generate_tokens(user)
         return {"user": user, "tokens": tokens}
 
@@ -337,7 +352,8 @@ class AuthService:
         Raises ForbiddenException if insufficient permissions.
         """
         role_hierarchy = {
-            UserRole.STAFF: 1,
+            UserRole.STORE_STAFF: 1,
+            UserRole.INVENTORY_STAFF: 1,
             UserRole.MANAGER: 2,
         }
 

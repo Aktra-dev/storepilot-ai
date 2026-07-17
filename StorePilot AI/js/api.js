@@ -184,7 +184,7 @@
                         const refreshToken = getRefreshToken();
                         if (!refreshToken) throw new Error("No refresh token");
 
-                        const refreshResponse = await _request("/auth/refresh", {
+                        const refreshResponse = await _request("/api/v1/auth/refresh", {
                             method: "POST",
                             body: { refresh_token: refreshToken },
                             noAuth: true

@@ -433,17 +433,152 @@
   <script src="../js/api.js"></script>
   <script src="../js/app.js"></script>
 
-  <!-- Catatan: Mobile menu toggle & theme toggle sudah ditangani secara global oleh app.js -->
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Filter Buttons Active Switcher (Umpan Balik Visual Lokal)
+    document.addEventListener('DOMContentLoaded', async () => {
+      const API = window.StorePilotAPI;
+      if (!API) return;
+      if (!API.isLoggedIn()) { window.location.href = '../index.html'; return; }
+
+      // Sidebar profile
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (user.name) {
+        document.getElementById('sidebarProfileName').textContent = user.name;
+        document.getElementById('sidebarProfileRole').textContent = user.role || 'Staff';
+      }
+
+      // Logout
+      document.querySelector('a[href="../index.html"]').addEventListener('click', (e) => {
+        e.preventDefault();
+        API.clearTokens();
+        window.location.href = '../index.html';
+      });
+
+      let allTasks = [];
+
+      // Filter logic
       const filterButtons = document.querySelectorAll('.filter-button');
       filterButtons.forEach(btn => {
         btn.addEventListener('click', () => {
           filterButtons.forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
+          applyFilter(btn.dataset.taskFilter);
         });
       });
+
+      function statusLabel(s) {
+        const map = {
+          'pending_approval': 'Menunggu',
+          'approved': 'Disetujui',
+          'in_progress': 'Sedang Dikerjakan',
+          'completed': 'Selesai',
+          'rejected': 'Ditolak',
+          'cancelled': 'Dibatalkan'
+        };
+        return map[s] || s;
+      }
+
+      function badgeClass(s) {
+        const map = {
+          'pending_approval': 'badge-medium',
+          'approved': 'badge',
+          'in_progress': 'badge',
+          'completed': 'badge',
+          'rejected': 'badge-high',
+          'cancelled': 'badge-medium'
+        };
+        return map[s] || 'badge-medium';
+      }
+
+      function applyFilter(filter) {
+        const listEl = document.getElementById('taskList');
+        const summaryEl = document.getElementById('taskSummary');
+        if (!listEl) return;
+
+        if (!allTasks || allTasks.length === 0) {
+          listEl.innerHTML = `
+            <div class="empty-state">
+              <span class="empty-state-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+              <h3 style="font-weight: var(--font-weight-semibold); font-size: 1.1rem; margin-top: 0.5rem;">Belum ada tugas</h3>
+              <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); max-width: 420px;">Tugas akan muncul setelah analisis operasional dijalankan dan disetujui.</p>
+            </div>
+          `;
+          return;
+        }
+
+        const filtered = filter === 'all'
+          ? allTasks
+          : allTasks.filter(t => t.status === filter || t.status === filter.replace('-', '_'));
+
+        if (summaryEl) {
+          const total = allTasks.length;
+          const done = allTasks.filter(t => t.status === 'completed').length;
+          const pending = allTasks.filter(t => t.status === 'pending_approval').length;
+          summaryEl.innerHTML = `
+            <div class="metric-card">
+              <span class="metric-title">Total Tugas</span>
+              <span class="metric-value">${total}</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-title">Selesai</span>
+              <span class="metric-value" style="color: var(--color-success);">${done}</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-title">Menunggu</span>
+              <span class="metric-value" style="color: var(--color-high);">${pending}</span>
+            </div>
+          `;
+        }
+
+        listEl.innerHTML = filtered.map(t => `
+          <div class="risk-item" style="flex-direction: column; align-items: stretch;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div class="risk-info">
+                <h4>${t.title}</h4>
+                <p>${t.description || ''}</p>
+              </div>
+              <span class="badge ${badgeClass(t.status)}">${statusLabel(t.status)}</span>
+            </div>
+            <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem;">
+              ${t.status === 'approved' ? `<button class="button button-primary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" data-action="start" data-id="${t.id}">Mulai</button>` : ''}
+              ${t.status === 'in_progress' ? `<button class="button button-primary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;" data-action="complete" data-id="${t.id}">Selesaikan</button>` : ''}
+            </div>
+          </div>
+        `).join('');
+
+        // Attach action handlers
+        listEl.querySelectorAll('[data-action="start"]').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const id = e.target.dataset.id;
+            try {
+              await API.startTask(id);
+              allTasks = allTasks.map(t => t.id === id ? { ...t, status: 'in_progress' } : t);
+              applyFilter(filter);
+            } catch (err) { alert('Gagal memulai tugas: ' + err.message); }
+          });
+        });
+        listEl.querySelectorAll('[data-action="complete"]').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            const id = e.target.dataset.id;
+            try {
+              await API.completeTask(id);
+              allTasks = allTasks.map(t => t.id === id ? { ...t, status: 'completed' } : t);
+              applyFilter(filter);
+            } catch (err) { alert('Gagal menyelesaikan tugas: ' + err.message); }
+          });
+        });
+      }
+
+      try {
+        allTasks = await API.getTasks();
+        if (!Array.isArray(allTasks)) allTasks = [];
+        applyFilter('all');
+      } catch (err) {
+        console.error('Tasks load error:', err);
+        if (err.status === 401) {
+          API.clearTokens();
+          window.location.href = '../index.html';
+        }
+      }
     });
   </script>
 </body>

@@ -379,15 +379,107 @@
 
   <!-- Catatan: Mobile menu toggle & theme toggle sudah ditangani secara global oleh app.js -->
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
+      const API = window.StorePilotAPI;
+      if (!API) return;
+      if (!API.isLoggedIn()) { window.location.href = '../index.html'; return; }
+
+      // Sidebar profile
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (user.name) {
+        document.getElementById('sidebarProfileName').textContent = user.name;
+        document.getElementById('sidebarProfileRole').textContent = user.role || 'Staff';
+      }
+
+      // Logout
+      document.querySelector('a[href="../index.html"]').addEventListener('click', (e) => {
+        e.preventDefault();
+        API.clearTokens();
+        window.location.href = '../index.html';
+      });
+
       // Filter Buttons Active Switcher (Umpan Balik Visual Lokal)
       const filterButtons = document.querySelectorAll('.filter-button');
       filterButtons.forEach(btn => {
         btn.addEventListener('click', () => {
           filterButtons.forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
+          const filter = btn.dataset.findingFilter;
+          applyFilter(filter);
         });
       });
+
+      let allFindings = [];
+
+      function applyFilter(filter) {
+        const listEl = document.getElementById('findingsList');
+        if (!listEl) return;
+        if (!allFindings || allFindings.length === 0) {
+          listEl.innerHTML = `
+            <div class="empty-state" style="grid-column: 1 / -1;">
+              <span class="empty-state-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
+              <h3 style="font-weight: var(--font-weight-semibold); font-size: 1.1rem; margin-top: 0.5rem;">Belum ada temuan</h3>
+              <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); max-width: 420px;">Jalankan analisis operasional dari halaman Analisis untuk menghasilkan temuan.</p>
+            </div>
+          `;
+          return;
+        }
+
+        const filtered = filter === 'all' ? allFindings : allFindings.filter(f => f.severity === filter);
+        listEl.innerHTML = filtered.map(f => `
+          <div class="risk-item" style="flex-direction: column; align-items: stretch;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div class="risk-info">
+                <h4>${f.title || 'Temuan'}</h4>
+                <p>${f.description || 'Tidak ada deskripsi'}</p>
+              </div>
+              <span class="badge ${f.severity === 'critical' ? 'badge-high' : 'badge-medium'}">${(f.severity || 'info').toUpperCase()}</span>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      try {
+        // Fetch findings from dashboard API
+        allFindings = await API.getRecentFindings(50);
+        if (!Array.isArray(allFindings)) allFindings = [];
+
+        // Update summary
+        const summaryEl = document.getElementById('findingsSummary');
+        if (summaryEl && allFindings.length > 0) {
+          const critical = allFindings.filter(f => f.severity === 'critical').length;
+          const high = allFindings.filter(f => f.severity === 'high').length;
+          const medium = allFindings.filter(f => f.severity === 'medium').length;
+          summaryEl.innerHTML = `
+            <div class="metric-card">
+              <span class="metric-title">Total Temuan</span>
+              <span class="metric-value">${allFindings.length}</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-title">Kritis</span>
+              <span class="metric-value" style="color: var(--color-critical);">${critical}</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-title">Tinggi</span>
+              <span class="metric-value" style="color: var(--color-high);">${high}</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-title">Sedang</span>
+              <span class="metric-value">${medium}</span>
+            </div>
+          `;
+        }
+
+        // Render findings
+        applyFilter('all');
+
+      } catch (err) {
+        console.error('Findings load error:', err);
+        if (err.status === 401) {
+          API.clearTokens();
+          window.location.href = '../index.html';
+        }
+      }
     });
   </script>
 </body>

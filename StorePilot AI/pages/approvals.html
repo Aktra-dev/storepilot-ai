@@ -371,5 +371,111 @@
   <script src="../js/app.js"></script>
 
   <!-- Catatan: Mobile menu toggle & theme toggle sudah ditangani secara global oleh app.js -->
-</body>
-</html>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const API = window.StorePilotAPI;
+      if (!API) return;
+      if (!API.isLoggedIn()) { window.location.href = '../index.html'; return; }
+
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (user.name) {
+        document.getElementById('sidebarProfileName').textContent = user.name;
+        document.getElementById('sidebarProfileRole').textContent = user.role || 'Staff';
+      }
+
+      document.querySelector('a[href="../index.html"]').addEventListener('click', (e) => {
+        e.preventDefault();
+        API.clearTokens();
+        window.location.href = '../index.html';
+      });
+
+      async function loadTasks() {
+        try {
+          const pendingTasks = await API.getTasks('pending_approval');
+          const allTasks = await API.getTasks();
+          
+          const approvalList = document.getElementById('approvalList');
+          const summaryEl = document.getElementById('approvalSummary');
+
+          // Summary
+          if (summaryEl && Array.isArray(allTasks)) {
+            const pending = allTasks.filter(t => t.status === 'pending_approval').length;
+            const approved = allTasks.filter(t => t.status === 'approved').length;
+            const rejected = allTasks.filter(t => t.status === 'rejected').length;
+            summaryEl.innerHTML = `
+              <div class="metric-card">
+                <span class="metric-title">Menunggu</span>
+                <span class="metric-value" style="color: var(--color-warning);">${pending}</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-title">Disetujui</span>
+                <span class="metric-value" style="color: var(--color-success);">${approved}</span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-title">Ditolak</span>
+                <span class="metric-value" style="color: var(--color-critical);">${rejected}</span>
+              </div>
+            `;
+          }
+
+          // Task list
+          if (approvalList) {
+            if (!Array.isArray(pendingTasks) || pendingTasks.length === 0) {
+              approvalList.innerHTML = `
+                <div class="empty-state">
+                  <span class="empty-state-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+                  <h3 style="font-weight: var(--font-weight-semibold); font-size: 1.1rem; margin-top: 0.5rem;">Semua tugas sudah ditinjau</h3>
+                  <p style="color: var(--color-text-muted); font-size: var(--font-size-sm); max-width: 420px;">Tidak ada usulan tindakan operasional yang menunggu persetujuan saat ini.</p>
+                </div>
+              `;
+            } else {
+              approvalList.innerHTML = pendingTasks.map(t => `
+                <div class="risk-item" data-task-id="${t.id}" style="flex-direction: column; align-items: stretch;">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div class="risk-info">
+                      <h4>${t.title}</h4>
+                      <p>${t.description || 'Tidak ada deskripsi'}</p>
+                    </div>
+                    <span class="badge badge-medium">MENUNGGU</span>
+                  </div>
+                  <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem;">
+                    <button class="button button-primary" style="padding: 0.4rem 1rem; font-size: 0.85rem;" data-action="approve" data-id="${t.id}">✅ Setujui</button>
+                    <button class="button button-ghost" style="padding: 0.4rem 1rem; font-size: 0.85rem; color: var(--color-critical);" data-action="reject" data-id="${t.id}">✕ Tolak</button>
+                  </div>
+                </div>
+              `).join('');
+
+              // Attach handlers
+              approvalList.querySelectorAll('[data-action="approve"]').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                  const id = e.target.dataset.id;
+                  try {
+                    await API.approveTask(id, user.id, 'Disetujui');
+                    loadTasks();
+                  } catch (err) { alert('Gagal menyetujui: ' + err.message); }
+                });
+              });
+              approvalList.querySelectorAll('[data-action="reject"]').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                  const id = e.target.dataset.id;
+                  const note = prompt('Alasan penolakan (opsional):');
+                  try {
+                    await API.rejectTask(id, user.id, note || 'Ditolak');
+                    loadTasks();
+                  } catch (err) { alert('Gagal menolak: ' + err.message); }
+                });
+              });
+            }
+          }
+        } catch (err) {
+          console.error('Approvals load error:', err);
+          if (err.status === 401) {
+            API.clearTokens();
+            window.location.href = '../index.html';
+          }
+        }
+      }
+
+      loadTasks();
+    });
+  </script>

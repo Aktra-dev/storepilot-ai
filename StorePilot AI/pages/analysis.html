@@ -420,5 +420,125 @@
   <script src="../js/app.js"></script>
 
   <!-- Catatan: Mobile menu toggle & theme toggle sudah ditangani secara global oleh app.js -->
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const API = window.StorePilotAPI;
+      if (!API) return;
+      if (!API.isLoggedIn()) { window.location.href = '../index.html'; return; }
+
+      // Sidebar profile
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (user.name) {
+        document.getElementById('sidebarProfileName').textContent = user.name;
+        document.getElementById('sidebarProfileRole').textContent = user.role || 'Staff';
+      }
+
+      // Logout
+      const logoutLink = document.querySelector('a[href="../index.html"]');
+      if (logoutLink) {
+        logoutLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          API.clearTokens();
+          window.location.href = '../index.html';
+        });
+      }
+
+      // Check analysis status on load
+      try {
+        const status = await API.getAnalysisStatus();
+        if (status) {
+          const progressEl = document.getElementById('analysisProgress');
+          if (progressEl && status.last_analysis) {
+            progressEl.innerHTML = `
+              <div class="metric-card" style="padding: 1rem; text-align: center;">
+                <p style="color: var(--color-text-muted); font-size: 0.875rem;">Analisis terakhir: ${new Date(status.last_analysis).toLocaleString('id-ID')}</p>
+                <p style="margin-top: 0.5rem; font-weight: 600; color: var(--color-primary);">Total temuan: ${status.total_findings || 0}</p>
+              </div>
+            `;
+          }
+        }
+      } catch (e) { /* no analysis yet */ }
+
+      // Run analysis button
+      const runBtn = document.getElementById('runAnalysisButton');
+      const progressEl = document.getElementById('analysisProgress');
+      const resultEl = document.getElementById('analysisResult');
+      const summaryEl = document.getElementById('analysisSummary');
+
+      if (runBtn) {
+        runBtn.addEventListener('click', async () => {
+          runBtn.disabled = true;
+          runBtn.textContent = 'Menganalisis...';
+          
+          if (progressEl) {
+            progressEl.innerHTML = `
+              <div style="text-align: center; padding: 2rem;">
+                <div style="width: 40px; height: 40px; border: 3px solid var(--color-border); border-top-color: var(--color-primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem;"></div>
+                <p style="color: var(--color-text-muted);">StorePilot AI sedang menganalisis data operasional...</p>
+              </div>
+            `;
+          }
+
+          try {
+            const result = await API.runAnalysis();
+            
+            if (progressEl) {
+              progressEl.innerHTML = `
+                <div class="metric-card" style="text-align: center; padding: 1.5rem;">
+                  <span style="font-size: 2rem;">✅</span>
+                  <p style="margin-top: 0.5rem; font-weight: 600; color: var(--color-success);">Analisis selesai!</p>
+                  <p style="color: var(--color-text-muted); font-size: 0.875rem;">ID: ${result.analysis_id || '-'}</p>
+                </div>
+              `;
+            }
+
+            if (summaryEl && result) {
+              let findingsHtml = '';
+              if (result.findings && Array.isArray(result.findings)) {
+                findingsHtml = result.findings.slice(0, 5).map(f => `
+                  <div style="padding: 0.75rem; border-bottom: 1px solid var(--glass-border);">
+                    <strong>${f.title}</strong>
+                    <p style="font-size: 0.875rem; color: var(--color-text-muted); margin: 0.25rem 0 0;">${f.description || ''}</p>
+                    <span class="badge ${f.severity === 'critical' ? 'badge-high' : 'badge-medium'}">${f.severity || 'info'}</span>
+                  </div>
+                `).join('');
+              }
+              summaryEl.innerHTML = `
+                <div class="ai-panel-header">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  <span>Ringkasan Analisis AI</span>
+                </div>
+                ${findingsHtml || '<p style="color: var(--color-text-muted);">Analisis selesai, tidak ada temuan spesifik.</p>'}
+              `;
+            }
+
+            if (resultEl) {
+              const actionsEl = document.getElementById('analysisResultActions');
+              if (actionsEl && result.findings && result.findings.length > 0) {
+                actionsEl.innerHTML = `
+                  <a href="approvals.html" class="button button-primary">Lihat & Setujui Tugas</a>
+                  <a href="findings.html" class="button button-ghost" style="margin-left: 0.5rem;">Detail Temuan</a>
+                `;
+              }
+            }
+
+          } catch (err) {
+            console.error('Analysis failed:', err);
+            if (progressEl) {
+              progressEl.innerHTML = `
+                <div style="text-align: center; padding: 1.5rem;">
+                  <span style="font-size: 2rem;">❌</span>
+                  <p style="color: var(--color-critical); margin-top: 0.5rem;">Analisis gagal: ${err.message || 'Unknown error'}</p>
+                </div>
+              `;
+            }
+          } finally {
+            runBtn.disabled = false;
+            runBtn.textContent = 'JALANKAN ANALISIS OPERASIONAL';
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>

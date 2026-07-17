@@ -261,6 +261,38 @@ class OperationalWorkflowService:
             "proposed_tasks": tasks,
         }
 
+    # ------------------------------------------------------------------
+    # GET /api/operations/status
+    # ------------------------------------------------------------------
+
+    def get_status(self) -> dict:
+        """Lightweight summary of the most recent analysis run.
+
+        Returns last_analysis=None / total_findings=0 when no analysis
+        has ever been run yet, rather than raising -- this endpoint is
+        meant to be safe to poll from the dashboard/analysis pages.
+        """
+        latest = (
+            self.db.query(OperationalAnalysis)
+            .order_by(OperationalAnalysis.created_at.desc())
+            .first()
+        )
+
+        if not latest:
+            return {"last_analysis": None, "total_findings": 0, "status": None}
+
+        findings_count = (
+            self.db.query(OperationalFinding)
+            .filter_by(analysis_id=latest.id)
+            .count()
+        )
+
+        return {
+            "last_analysis": latest.created_at,
+            "total_findings": findings_count,
+            "status": latest.status,
+        }
+
     @staticmethod
     def _safe_uuid(value: Optional[str]) -> Optional[uuid.UUID]:
         if not value:

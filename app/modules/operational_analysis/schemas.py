@@ -64,3 +64,16 @@ class AnalysisDetailResponse(BaseModel):
     analysis: AnalysisDetail
     findings: List[FindingDetail]
     proposed_tasks: List[TaskDetail]
+
+
+class AnalysisStatusResponse(BaseModel):
+    """Summary of the most recent operational analysis run.
+
+    Used by GET /api/operations/status so the frontend can show a
+    lightweight "last analysis" indicator without fetching full
+    findings/tasks detail.
+    """
+
+    last_analysis: Optional[datetime] = None
+    total_findings: int = 0
+    status: Optional[AnalysisStatus] = None

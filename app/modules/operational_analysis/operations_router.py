@@ -22,7 +22,11 @@ from app.modules.ai_engine.mock_provider import MockAIProvider
 from app.modules.ai_engine.provider_base import AIProvider
 from app.modules.ai_engine.service import AIOperationalAnalysisService
 from app.modules.auth.models import User
-from app.modules.operational_analysis.schemas import AnalysisDetailResponse, AnalyzeResponse
+from app.modules.operational_analysis.schemas import (
+    AnalysisDetailResponse,
+    AnalysisStatusResponse,
+    AnalyzeResponse,
+)
 from app.modules.operational_analysis.service import OperationalWorkflowService
 
 router = APIRouter()
@@ -63,6 +67,23 @@ def analyze_store(
 ):
     """Run the AI autonomous analysis. Manager only."""
     return workflow.run_analysis()
+
+
+@router.get("/status", response_model=AnalysisStatusResponse)
+def get_operations_status(
+    current_user: User = Depends(get_current_manager),
+    workflow: OperationalWorkflowService = Depends(get_workflow_service),
+):
+    """
+    Summary of the most recent analysis run (last run time + finding
+    count). Manager only.
+
+    IMPORTANT: this route MUST stay registered before /{analysis_id}
+    below -- FastAPI matches routes in registration order, and
+    /{analysis_id} would otherwise swallow /status requests and try
+    (and fail) to parse "status" as a UUID.
+    """
+    return workflow.get_status()
 
 
 @router.get("/{analysis_id}", response_model=AnalysisDetailResponse)

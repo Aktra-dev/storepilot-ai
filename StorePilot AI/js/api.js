@@ -16,7 +16,7 @@
                       window.location.hostname === '[::1]';
         __API_BASE__ = isLocal
             ? 'http://localhost:8000'
-            : 'https://storepilot-api.up.railway.app';  // GANTI dengan URL Railway asli
+            : 'https://storepilot-ai-six.vercel.app';  // GANTI dengan URL Railway asli
     }
 
     const config = {

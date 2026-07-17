@@ -16,7 +16,7 @@
                     window.location.hostname === '[::1]';
         __API_BASE__ = isLocal
             ? 'http://localhost:8000'
-            : 'https://storepilot-ai-six.vercel.app';  // Backend URL Vercel
+: 'https://storepilot-ai-six.vercel.app';  // Backend URL Vercel 9e49c55ec9122b940c34ff1a3b5267d09f4e24b2
     }
 
     const config = {
